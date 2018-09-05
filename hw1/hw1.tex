@@ -60,13 +60,13 @@
 
 \subparagraph{}
 
-When run on my macbook pro \textit{gears} runs at $60$ frames per second regardless of the window size. When run on my desktop, which runs ubuntu, \textit{gears} runs at $7300$ fps when the window size is $1280\times1024$, $16800$ when the window size is $300\times300$, and $17000$ fps when the window size is $1\times1$.
+When run on my macbook pro \textit{gears} runs at $60$ frames per second regardless of the window size. When run on my desktop, which runs ubuntu, \textit{gears} runs at $7300$ fps when the window size is $1280\times1024$, $16800$ fps when the window size is $300\times300$, and $17000$ fps when the window size is $1\times1$. Low framerates are reported for the macbook because I was not able to disable vsync on that machine. I was able to disable vsync on my ubuntu machine, so the framerates reported are much higher.
 
 \subsection{On some systems the frame rate is a small round number like $60$ or $72$ or $85$ frames per second, and sometimes it is a large number, thousands or tens of thousands of frames per second. Explain why this occurs.}
 
 \subparagraph{}
 
-When vsync is enabled the framerate will be synchronized to the refresh rate of the monitor. This is why the framerate was limited to $60$ frames per second on my macbook pro. Initially, my ubuntu machine showed the same behavior, but when I disabled vsync I saw the much higher framerates reported in the answer to question 1. I was unable to disable vsync on my macbook. This is why I was only able to perform this experiment on my ubuntu machine.
+When vsync is enabled the framerate is synchronized to the refresh rate of the monitor. This is why the framerate was limited to $60$ frames per second on my macbook pro. Additionally, when I changed the refresh rate of my macbook's monitor to $50$ Hz I found that the framerates dropped to $50$ fps. Initially, my ubuntu machine showed the same behavior, but when I disabled vsync I saw the much higher framerates reported in the answer to question 1. 
 
 \subsection{Time required to complete the assignment}
 
