@@ -1,0 +1,78 @@
+\documentclass[11pt]{article}
+
+% ==== PACKAGES ==== %
+% \usepackage{fullpage}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage[letterpaper, margin=1in]{geometry}
+
+% ==== MARGINS ==== %
+% \pagestyle{empty}
+% \setlength{\oddsidemargin}{0in}
+% \setlength{\textwidth}{6.8in}
+% \setlength{\textheight}{9.5in}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{CSCI 5229}
+\lhead{Homework 1}
+\rfoot{Page \thepage}
+
+
+\newtheorem*{solution*}{Solution}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem{corollary}[lemma]{Corollary}
+\lstset{moredelim=[is][\bfseries]{[*}{*]}}
+
+% ==== DOCUMENT PROPER ==== %
+\begin{document}
+
+\thispagestyle{empty}
+
+% --- Header Box --- %
+\newlength{\boxlength}\setlength{\boxlength}{\textwidth}
+\addtolength{\boxlength}{-4mm}
+
+\begin{center}\framebox{\parbox{\boxlength}{\bf
+      Computer Graphics \hfill Homework 1\\
+      CSCI 5229 Fall 2018 \hfill Due Date: Sep 5, 2018\\
+      Name: Andrew Kramer \hfill CU identitykey: ankr1041
+}}
+\end{center}
+
+
+
+
+\section{Gears Program}
+
+\subsection{List the framerate reported by the program when the window is at different sizes}
+
+\subparagraph{}
+
+When run on my macbook pro \textit{gears} runs at $60$ frames per second regardless of the window size. When run on my desktop, which runs ubuntu, \textit{gears} runs at $7300$ fps when the window size is $1280\times1024$, $16800$ when the window size is $300\times300$, and $17000$ fps when the window size is $1\times1$.
+
+\subsection{On some systems the frame rate is a small round number like $60$ or $72$ or $85$ frames per second, and sometimes it is a large number, thousands or tens of thousands of frames per second. Explain why this occurs.}
+
+\subparagraph{}
+
+When vsync is enabled the framerate will be synchronized to the refresh rate of the monitor. This is why the framerate was limited to $60$ frames per second on my macbook pro. Initially, my ubuntu machine showed the same behavior, but when I disabled vsync I saw the much higher framerates reported in the answer to question 1. I was unable to disable vsync on my macbook. This is why I was only able to perform this experiment on my ubuntu machine.
+
+\subsection{Time required to complete the assignment}
+
+\subparagraph{}
+
+Approximately one hour.
+
+
+\end{document}
