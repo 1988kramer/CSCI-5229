@@ -19,7 +19,7 @@ endif
 
 #  Compile and link
 hw2:hw2.c
-	gcc $(CFLG) -o $@ $^   $(LIBS)
+	g++ $(CFLG) -o $@ $^   $(LIBS)
 
 #  Clean
 clean:

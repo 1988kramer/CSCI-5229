@@ -6,7 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <iostream>
+#include <cmath>
 #include <time.h>
+#include <ctime>
 #define GL_GLEXT_PROTOTYPES
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -26,6 +29,9 @@ double points_[50000][3]; // points for lorenz attractor graph
 GLfloat view_z_ = 60.0;
 
 double dim_ = 2.0;
+int start_time_ = std::clock();
+int color_start_ = 0;
+bool cycle_colors_ = false;
 
 /*
  *  Convenience routine to output raster text
@@ -107,8 +113,8 @@ static void display()
 
   for (int i = 1; i < num_points_; i++)
   {
-    double color = (double)i / (double)num_points_;
-    glColor3d(color,0.0,0.5/color);
+    double color = (double)((i + color_start_) % num_points_) / (double)(num_points_);
+    glColor3d(color,0.0, 1.0-color);
     glVertex3dv(points_[i]);
   }
 
@@ -188,12 +194,32 @@ static void key(unsigned char k, int x, int y)
     s_ += 0.5;
   else if (k == 'k')
     s_ -= 0.5;
+  else if (k == 'g')
+  {
+    if (cycle_colors_)
+    {
+      cycle_colors_ = false;
+    }
+    else
+    {
+      cycle_colors_ = true;
+      // ensure color cycle starts in the same place it
+      // ended in last time the key was pressed
+      start_time_ = color_start_ * CLOCKS_PER_SEC / 50000;
+    }
+  }
   glutPostRedisplay();
 }
 
+// advance the color start point based on the elapsed time
 static void idle()
 {
-
+  if (cycle_colors_)
+  {
+    int cur_time = std::clock() - start_time_;
+    color_start_ = (cur_time * 50000) / CLOCKS_PER_SEC;
+    glutPostRedisplay();
+  }
 }
 
 int main(int argc, char *argv[])
