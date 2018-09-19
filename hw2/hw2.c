@@ -33,6 +33,10 @@ int start_time_ = std::clock();
 int color_start_ = 0;
 bool cycle_colors_ = false;
 
+double start_color_[] = {1.0, 0.11, 0.68};
+double mid_color_[] = {0.53, 0.12, 0.47};
+double end_color_[] = {0.0, 0.0, 0.61};
+
 /*
  *  Convenience routine to output raster text
  *  Use VARARGS to make this more flexible
@@ -84,6 +88,25 @@ int calculatePoints()
    return 0;
 }
 
+// interpolate between the three defined start, mid, and end colors
+// based on color_index
+void getColor(double color_index, double &red, double &green, double &blue)
+{
+  if (color_index <= 0.5)
+  {
+    red = color_index * (start_color_[0] - mid_color_[0]) + mid_color_[0];
+    green = color_index * (start_color_[1] - mid_color_[1]) + mid_color_[1];
+    blue = color_index * (start_color_[2] - mid_color_[2]) + mid_color_[2];
+  }
+  else
+  {
+    color_index -= 0.5;
+    red = color_index * (mid_color_[0] - end_color_[0]) + end_color_[0];
+    green = color_index * (mid_color_[1] - end_color_[1]) + end_color_[1];
+    blue = color_index * (mid_color_[2] - end_color_[2]) + end_color_[2];
+  }
+}
+
 static void display()
 {
   // calculate the set of points to be plotted
@@ -114,8 +137,12 @@ static void display()
   for (int i = 1; i < num_points_; i++)
   {
     // set color based on t
-    double color = (double)((i + color_start_) % num_points_) / (double)(num_points_);
-    glColor3d(color,0.0, 1.0-color);
+    double color_index = (double)((i + color_start_) % num_points_) / (double)num_points_;
+    double red;
+    double green;
+    double blue;
+    getColor(color_index, red, green, blue);
+    glColor3d(red, green, blue);
     glVertex3dv(points_[i]);
   }
 
