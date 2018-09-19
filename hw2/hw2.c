@@ -113,6 +113,7 @@ static void display()
 
   for (int i = 1; i < num_points_; i++)
   {
+    // set color based on t
     double color = (double)((i + color_start_) % num_points_) / (double)(num_points_);
     glColor3d(color,0.0, 1.0-color);
     glVertex3dv(points_[i]);
@@ -182,7 +183,7 @@ static void special(int k, int x, int y)
 
 static void key(unsigned char k, int x, int y)
 {
-  if (k == 'y')
+  if (k == 'y') 
     r_ += 0.5;
   else if (k == 'p')
     r_ -= 0.5;
