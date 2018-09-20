@@ -35,7 +35,7 @@ bool cycle_colors_ = false;
 
 double start_color_[] = {1.0, 0.11, 0.68};
 double mid_color_[] = {0.53, 0.12, 0.47};
-double end_color_[] = {0.0, 0.0, 0.61};
+double end_color_[] = {0.2, 0.2, 0.8};
 
 /*
  *  Convenience routine to output raster text
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
   glutInitWindowSize(500,500);
 
   // create the window
-  glutCreateWindow("hw2 - Andrew Kramer");
+  glutCreateWindow("Assignment2: Andrew Kramer");
 
   // set callback functions
   glutDisplayFunc(display);

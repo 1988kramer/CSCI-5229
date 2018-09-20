@@ -3,7 +3,9 @@ Author: Andrew Kramer
 Date: 9/19/2018
 
 Example program plots a lorenz attractor using user-defined 
-parameters. 
+parameters. Line color smoothly transitions shifts from pink, 
+to purple, to blue. User can make the colors cycle over the
+length of the line.
 
 Controls:
 
