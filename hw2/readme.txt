@@ -27,3 +27,5 @@ Attributions:
    such as special(), reshape(), and Print().
  - also borrows from lorenz.c, included in the assignment, for the logic 
    used to generate the vertices of the lorenz attractor graph
+
+Time spent on assignment: 4 hours
