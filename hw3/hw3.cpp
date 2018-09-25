@@ -424,7 +424,7 @@ void display()
   	glRotatef(ph,1,0,0);
   	glRotatef(th,0,1,0);
 
-  	drawPiperCub(Cos(zh_),Sin(zh_),0,-Sin(zh_),Cos(zh_),0, 0,1,0);
+  	drawPiperCub(0,0,0, 1,0,0, 0,1,0);
 
   	glFlush();
   	glutSwapBuffers();
