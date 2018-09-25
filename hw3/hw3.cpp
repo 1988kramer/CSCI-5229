@@ -46,11 +46,6 @@ void Print(const char* format , ...)
       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,*ch++);
 }
 
-double interp(double x1, double x2, double t)
-{
-  return t * (x1 + x2);
-}
-
 /*
  *  GLUT calls this routine when an arrow key is pressed
  */
@@ -118,6 +113,11 @@ void reshape(int width,int height)
    glMatrixMode(GL_MODELVIEW);
    //  Undo previous transformations
    glLoadIdentity();
+}
+
+void pointOnCircle(double th, double r, double c_x, double c_y, double c_z)
+{
+  glVertex3d(c_x, c_y + (r*Cos(th)), c_z + (r*Sin(th)));
 }
 
 /*
@@ -204,30 +204,77 @@ static void drawFuselage()
   glVertex3d(0.25, 0.0, -0.1);
   glVertex3d(0.25, 0.0, 0.1);
 
+  double cowling_top = 0.13;
+  double cowling_bottom = 0.01;
+  double cowling_side = 0.09;
+
   // windscreen
   glColor3f(0.1,0.5,0.1);
   glVertex3d(0.25, 0.2, 0.1);
   glVertex3d(0.25, 0.2, -0.1);
-  glVertex3d(0.33, 0.13, -0.09);
-  glVertex3d(0.33, 0.13, 0.09);
+  glVertex3d(0.33, cowling_top, -1. * cowling_side);
+  glVertex3d(0.33, cowling_top, cowling_side);
 
   // fwd fuselage right
   glColor3f(0.25,0.25,0.1);
   glVertex3d(0.25, 0.2, 0.1);
   glVertex3d(0.25, 0.0, 0.1);
-  glVertex3d(0.33, 0.01, 0.09);
-  glVertex3d(0.33, 0.13, 0.09);
+  glVertex3d(0.33, cowling_bottom, cowling_side);
+  glVertex3d(0.33, cowling_top, cowling_side);
 
   // fwd fuselage left
   glColor3f(0.5, 0.1, 0.1);
   glVertex3d(0.25, 0.0, -0.1);
   glVertex3d(0.25, 0.2, -0.1);
-  glVertex3d(0.33, 0.13, -0.09);
-  glVertex3d(0.33, 0.01, -0.09);
+  glVertex3d(0.33, cowling_top, -1. * cowling_side);
+  glVertex3d(0.33, cowling_bottom, -1. * cowling_side);
 
   // fwd belly
+  glColor3f(0.2, 0.1, 0.2);
+  glVertex3d(0.25, 0.0, -0.1);
+  glVertex3d(0.33, cowling_bottom, -1. * cowling_side);
+  glVertex3d(0.33, cowling_bottom, cowling_side);
+  glVertex3d(0.25, 0.0, 0.1);
+
+  glEnd();
 
   // aft cowling
+  double cowl_y_center = 0.5 * (cowling_top + cowling_bottom);
+  glColor3f(0.1,0.6,0.2);
+  glBegin(GL_QUAD_STRIP);
+  double radius = 0.06;
+  double horiz_increment = cowling_side * 0.5;
+  double horiz_position = -1. * cowling_side;
+  for (double th = -45; th <= 45; th += 22.5)
+  {
+    glVertex3d(0.33, cowling_top, horiz_position);
+    pointOnCircle(th,radius,0.45,cowl_y_center,0.0);
+    horiz_position += horiz_increment;
+  }
+  double vert_increment = 0.25*(cowling_top - cowling_bottom);
+  double vert_position = cowling_top;
+  for (double th = 45; th <= 135; th += 22.5)
+  {
+    glVertex3d(0.33, vert_position, cowling_side);
+    pointOnCircle(th,radius,0.45,cowl_y_center,0.0);
+    vert_position -= vert_increment;
+  }
+  horiz_position -= horiz_increment;
+  for(double th = 135; th <= 225; th += 22.5)
+  {
+    glVertex3d(0.33, cowling_bottom, horiz_position);
+    pointOnCircle(th,radius,0.45,cowl_y_center,0.0);
+    horiz_position -= horiz_increment;
+  }
+  vert_position += vert_increment;
+  for(double th = 225; th <= 315; th += 22.5)
+  {
+    glVertex3d(0.33, vert_position, -1 * cowling_side);
+    pointOnCircle(th,radius,0.45,cowl_y_center,0.0);
+    vert_position += vert_increment;
+  }
+
+  glEnd();
 
   // fwd cowling
 
