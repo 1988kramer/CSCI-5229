@@ -19,7 +19,7 @@
 
 int th=0;         //  Azimuth of view angle
 int ph=0;         //  Elevation of view angle
-double zh=0;      //  Rotation of teapot
+double zh_=0;      //  Rotation of teapot
 int axes=1;       //  Display axes
 int mode=0;       //  What to display
 
@@ -424,7 +424,7 @@ void display()
   	glRotatef(ph,1,0,0);
   	glRotatef(th,0,1,0);
 
-  	drawPiperCub(0,0,0, 1,0,0, 0,1,0);
+  	drawPiperCub(Cos(zh_),Sin(zh_),0,-Sin(zh_),Cos(zh_),0, 0,1,0);
 
   	glFlush();
   	glutSwapBuffers();
@@ -432,6 +432,9 @@ void display()
 
 void idle()
 {
+  double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+   zh_ = fmod(90*t,360);
+   glutPostRedisplay();
 }
 
 /*

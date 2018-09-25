@@ -443,7 +443,7 @@ void display()
          //  Ball
          sphere1(0,0,0 , 0.3);
          //  Solid Airplane
-         SolidPlane(Cos(zh),Sin(zh), 0 ,-Sin(zh),Cos(zh),0 , Cos(4*zh),0,Sin(4*zh));
+         SolidPlane(Cos(zh),Sin(zh), 0 ,-Sin(zh),Cos(zh),0 , 0,1,0);//Cos(4*zh),0,Sin(4*zh));
          //  Utah Teapot
          glPushMatrix();
          glTranslatef(0,0,-1);
