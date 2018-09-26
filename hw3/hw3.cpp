@@ -20,7 +20,6 @@
 int th=0;         //  Azimuth of view angle
 int ph=0;         //  Elevation of view angle
 double zh_=0;      //  Rotation of teapot
-int axes=1;       //  Display axes
 int mode=0;       //  What to display
 
 //  Cosine and Sine in degrees
@@ -384,80 +383,79 @@ static void drawPiperCub(double x,double y,double z,
                   			double ux,double uy, double uz)
 {
 	//  Unit vector in direction of flght
-   double D0 = sqrt(dx*dx+dy*dy+dz*dz);
-   double X0 = dx/D0;
-   double Y0 = dy/D0;
-   double Z0 = dz/D0;
-   //  Unit vector in "up" direction
-   double D1 = sqrt(ux*ux+uy*uy+uz*uz);
-   double X1 = ux/D1;
-   double Y1 = uy/D1;
-   double Z1 = uz/D1;
-   //  Cross product gives the third vector
-   double X2 = Y0*Z1-Y1*Z0;
-   double Y2 = Z0*X1-Z1*X0;
-   double Z2 = X0*Y1-X1*Y0;
-   //  Rotation matrix
-   double mat[16];
-   mat[0] = X0;   mat[4] = X1;   mat[ 8] = X2;   mat[12] = 0;
-   mat[1] = Y0;   mat[5] = Y1;   mat[ 9] = Y2;   mat[13] = 0;
-   mat[2] = Z0;   mat[6] = Z1;   mat[10] = Z2;   mat[14] = 0;
-   mat[3] =  0;   mat[7] =  0;   mat[11] =  0;   mat[15] = 1;
+  double D0 = sqrt(dx*dx+dy*dy+dz*dz);
+  double X0 = dx/D0;
+  double Y0 = dy/D0;
+  double Z0 = dz/D0;
+  //  Unit vector in "up" direction
+  double D1 = sqrt(ux*ux+uy*uy+uz*uz);
+  double X1 = ux/D1;
+  double Y1 = uy/D1;
+  double Z1 = uz/D1;
+  //  Cross product gives the third vector
+  double X2 = Y0*Z1-Y1*Z0;
+  double Y2 = Z0*X1-Z1*X0;
+  double Z2 = X0*Y1-X1*Y0;
+  //  Rotation matrix
+  double mat[16];
+  mat[0] = X0;   mat[4] = X1;   mat[ 8] = X2;   mat[12] = 0;
+  mat[1] = Y0;   mat[5] = Y1;   mat[ 9] = Y2;   mat[13] = 0;
+  mat[2] = Z0;   mat[6] = Z1;   mat[10] = Z2;   mat[14] = 0;
+  mat[3] =  0;   mat[7] =  0;   mat[11] =  0;   mat[15] = 1;
 
-   // save current transforms
-   glPushMatrix();
+  // save current transforms
+  glPushMatrix();
 
-   // offset, scale and rotate
-   glTranslated(x,y,z);
-   glMultMatrixd(mat);
+  // offset, scale and rotate
+  glTranslated(x,y,z);
+  glMultMatrixd(mat);
 
-   drawFuselage();
-   drawWing();
-   drawVStab();
-   drawHStab();
+  drawFuselage();
+  drawWing();
+  drawVStab();
+  drawHStab();
 
-   glPopMatrix();
+  glPopMatrix();
 }
 
 void display()
 {
-	const double len=1.5;  //  Length of axes
-  	//  Erase the window and the depth buffer
-  	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-  	//  Enable Z-buffering in OpenGL
-  	glEnable(GL_DEPTH_TEST);
-  	//  Undo previous transformations
-  	glLoadIdentity();
-  	//  Set view angle
-  	glRotatef(ph,1,0,0);
-  	glRotatef(th,0,1,0);
+  //  Erase the window and the depth buffer
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  //  Enable Z-buffering in OpenGL
+  glEnable(GL_DEPTH_TEST);
+  //  Undo previous transformations
+  glLoadIdentity();
+  //  Set view angle
+  glRotatef(ph,1,0,0);
+  glRotatef(th,0,1,0);
 
-    // draw flying airplanes
-    glScaled(0.5, 0.5, 0.5);
-  	drawPiperCub(3.25*Cos(zh_),3,3.25*Sin(zh_),
-      -Sin(zh_),0,Cos(zh_),
-      -0.75*Cos(zh_),1,-0.75*Sin(zh_));
+  // draw flying airplanes
+  glScaled(0.5, 0.5, 0.5);
+  drawPiperCub(3.25*Cos(zh_),3,3.25*Sin(zh_),
+    -Sin(zh_),0,Cos(zh_),
+    -0.75*Cos(zh_),1,-0.75*Sin(zh_));
 
-    // draw airplanes on ground
-    glScaled(0.9,0.9,0.9);
-    drawPiperCub(-1,-3,1.5,
-      1,0.15,0.025,
-      -0.15,1,0);
-    drawPiperCub(-1,-3,-1.5,
-      1,0.15,-0.05,
-      -0.15,1,0);
+  // draw airplanes on ground
+  glScaled(0.9,0.9,0.9);
+  drawPiperCub(-1,-3,1.5,
+    1,0.15,0.025,
+    -0.15,1,0);
+  drawPiperCub(-1,-3,-1.5,
+    1,0.15,-0.05,
+    -0.15,1,0);
 
-    // draw ground
-    glBegin(GL_QUADS);
-    glColor3f(0.0,.7,0.20);
-    glVertex3d(-10.,-3.1,-10.);
-    glVertex3d(-10.,-3.1,10.);
-    glVertex3d(10.,-3.1,10.);
-    glVertex3d(10.,-3.1,-10.);
-    glEnd();
+  // draw ground
+  glBegin(GL_QUADS);
+  glColor3f(0.0,.7,0.20);
+  glVertex3d(-10.,-3.1,-10.);
+  glVertex3d(-10.,-3.1,10.);
+  glVertex3d(10.,-3.1,10.);
+  glVertex3d(10.,-3.1,-10.);
+  glEnd();
 
-  	glFlush();
-  	glutSwapBuffers();
+  glFlush();
+  glutSwapBuffers();
 }
 
 void idle()
