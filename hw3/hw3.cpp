@@ -213,6 +213,8 @@ static void drawFuselage()
   glVertex3d(0.25, door_bottom, -0.1);
   glVertex3d(0.25, door_bottom, 0.1);
 
+  // leave roof open, it will be covered by the wing
+
   double cowling_top = 0.18;
   double cowling_bottom = 0.01;
   double cowling_side = 0.09;
@@ -371,6 +373,12 @@ static void drawHStab()
   }
 }
 
+/*
+ *  Draw (something approximating) a piper cub
+ *    at (x,y,z)
+ *    nose towards (dx,dy,dz)
+ *    up towards (ux,uy,uz)
+ */
 static void drawPiperCub(double x,double y,double z,
        	           			double dx,double dy,double dz,
                   			double ux,double uy, double uz)
@@ -424,7 +432,29 @@ void display()
   	glRotatef(ph,1,0,0);
   	glRotatef(th,0,1,0);
 
-  	drawPiperCub(0,0,0, 1,0,0, 0,1,0);
+    // draw flying airplanes
+    glScaled(0.5, 0.5, 0.5);
+  	drawPiperCub(3.25*Cos(zh_),3,3.25*Sin(zh_),
+      -Sin(zh_),0,Cos(zh_),
+      -0.75*Cos(zh_),1,-0.75*Sin(zh_));
+
+    // draw airplanes on ground
+    glScaled(0.9,0.9,0.9);
+    drawPiperCub(-1,-3,1.5,
+      1,0.15,0.025,
+      -0.15,1,0);
+    drawPiperCub(-1,-3,-1.5,
+      1,0.15,-0.05,
+      -0.15,1,0);
+
+    // draw ground
+    glBegin(GL_QUADS);
+    glColor3f(0.0,.7,0.20);
+    glVertex3d(-10.,-3.1,-10.);
+    glVertex3d(-10.,-3.1,10.);
+    glVertex3d(10.,-3.1,10.);
+    glVertex3d(10.,-3.1,-10.);
+    glEnd();
 
   	glFlush();
   	glutSwapBuffers();
