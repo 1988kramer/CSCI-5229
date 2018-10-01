@@ -24,7 +24,11 @@ int mode=0;       //  What to display
 double dim=5.0;
 int fov = 55;
 double asp=1;
-const int num_modes = 2;
+const int num_modes = 3;
+double fp_x = 0.0;  // x position in first-person mode
+double fp_z = 0.0;  // y position in first-person mode
+int fp_th = 0; // Azimuth in first-person mode
+int fp_ph = 0; // Elevation in first-person mode
 
 //  Cosine and Sine in degrees
 #define Cos(x) (cos((x)*3.1415927/180))
@@ -72,21 +76,38 @@ static void Project()
  */
 void special(int key,int x,int y)
 {
-  //  Right arrow key - increase angle by 5 degrees
-  if (key == GLUT_KEY_RIGHT)
-    th += 5;
-  //  Left arrow key - decrease angle by 5 degrees
-  else if (key == GLUT_KEY_LEFT)
-    th -= 5;
-  //  Up arrow key - increase elevation by 5 degrees
-  else if (key == GLUT_KEY_UP)
-    ph += 5;
-  //  Down arrow key - decrease elevation by 5 degrees
-  else if (key == GLUT_KEY_DOWN)
-  ph -= 5;
-  //  Keep angles to +/-360 degrees
-  th %= 360;
-  ph %= 360;
+  if (mode != 2)
+  {
+    //  Right arrow key - increase angle by 5 degrees
+    if (key == GLUT_KEY_RIGHT)
+      th += 5;
+    //  Left arrow key - decrease angle by 5 degrees
+    else if (key == GLUT_KEY_LEFT)
+      th -= 5;
+    //  Up arrow key - increase elevation by 5 degrees
+    else if (key == GLUT_KEY_UP)
+      ph += 5;
+    //  Down arrow key - decrease elevation by 5 degrees
+    else if (key == GLUT_KEY_DOWN)
+    ph -= 5;
+    //  Keep angles to +/-360 degrees
+    th %= 360;
+    ph %= 360;
+  }
+  else
+  {
+    if (key == GLUT_KEY_RIGHT)
+      fp_th += 5;
+    else if (key == GLUT_KEY_LEFT)
+      fp_th -= 5;
+    else if (key == GLUT_KEY_UP)
+      fp_ph += 5;
+    else if (key == GLUT_KEY_DOWN)
+      fp_ph -= 5;
+
+    fp_th %= 360;
+    fp_ph %= 360;
+  }
   //  Tell GLUT it is necessary to redisplay the scene
   Project();
   glutPostRedisplay();
@@ -102,25 +123,41 @@ void key(unsigned char ch,int x,int y)
   {
     exit(0);
   }
-  //  Reset view angle
-  else if (ch == '0')
+
+  if (mode != 2)
   {
-    th = ph = 0;
+    //  Reset view angle
+    if (ch == '0')
+    {
+      th = ph = 0;
+    }
+    else if (ch == 'm' || ch == 'M')
+    {
+      mode += 1;
+      mode %= num_modes;
+    }
+    //  Change field of view angle
+    else if (ch == '-' && ch>1)
+    {
+      fov--;
+    }
+    else if (ch == '+' && ch<179)
+    {
+      fov++;
+    }
   }
-  else if (ch == 'm' || ch == 'M')
+  else
   {
-    mode += 1;
-    mode %= num_modes;
+    if (ch == ',')
+      fp_x += 0.1;
+    else if (ch == 'o')
+      fp_x -= 0.1;
+    else if (ch == 'e')
+      fp_z += 0.1;
+    else if (ch == 'a')
+      fp_z -= 0.1;
   }
-  //  Change field of view angle
-  else if (ch == '-' && ch>1)
-  {
-    fov--;
-  }
-  else if (ch == '+' && ch<179)
-  {
-    fov++;
-  }
+
    
   //  Tell GLUT it is necessary to redisplay the scene
   Project();
@@ -452,19 +489,24 @@ void display()
   glEnable(GL_DEPTH_TEST);
   //  Undo previous transformations
   glLoadIdentity();
-  if (mode == 1)
-  {
-    double Ex = -2*dim*Sin(th)*Cos(ph);
-    double Ey = +2*dim        *Sin(ph);
-    double Ez = +2*dim*Cos(th)*Cos(ph);
-    gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
-  }
-  else if (mode == 0)
+  if (mode == 0)
   {
     //  Set view angle
     glRotatef(ph,1,0,0);
     glRotatef(th,0,1,0);
   }
+  else if (mode == 1)
+  {
+    double Ex = -2*dim*Sin(th)*Cos(ph);
+    double Ey = +2*dim        *Sin(ph);
+    double Ez = +2*dim*Cos(th)*Cos(ph);
+    gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
+  }
+  else
+  {
+    gluLookAt(fp_x,-1.5,fp_z, Cos(fp_th),Sin(fp_ph),Sin(fp_th), 0.0,1.0,0.0);
+  }
+  
 
   // draw flying airplanes
   glScaled(0.5, 0.5, 0.5);
