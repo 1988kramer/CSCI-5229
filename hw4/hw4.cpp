@@ -105,8 +105,11 @@ void special(int key,int x,int y)
     else if (key == GLUT_KEY_DOWN)
       fp_ph -= 5;
 
+    // constrain azimuth to [0,360]
     fp_th %= 360;
-    fp_ph %= 360;
+    // constrain elevation to [-90,90]
+    if (fp_ph > 90) fp_ph = 90;
+    if (fp_ph < -90) fp_ph = -90;
   }
   //  Tell GLUT it is necessary to redisplay the scene
   Project();
@@ -123,6 +126,11 @@ void key(unsigned char ch,int x,int y)
   {
     exit(0);
   }
+  else if (ch == 'm' || ch == 'M')
+  {
+    mode += 1;
+    mode %= num_modes;
+  }
 
   if (mode != 2)
   {
@@ -130,11 +138,6 @@ void key(unsigned char ch,int x,int y)
     if (ch == '0')
     {
       th = ph = 0;
-    }
-    else if (ch == 'm' || ch == 'M')
-    {
-      mode += 1;
-      mode %= num_modes;
     }
     //  Change field of view angle
     else if (ch == '-' && ch>1)
@@ -148,14 +151,31 @@ void key(unsigned char ch,int x,int y)
   }
   else
   {
-    if (ch == ',')
-      fp_x += 0.1;
+    if (ch == '0')
+    {
+      fp_x = fp_z = 0.0;
+      fp_th = fp_ph = 0;
+    }
+    else if (ch == ',')
+    {
+      fp_x += 0.1*Cos(fp_th);
+      fp_z += 0.1*Sin(fp_th);
+    }
     else if (ch == 'o')
-      fp_x -= 0.1;
+    {
+      fp_x -= 0.1*Cos(fp_th);
+      fp_z -= 0.1*Sin(fp_th);
+    }
     else if (ch == 'e')
-      fp_z += 0.1;
+    {
+      fp_z += 0.1*Cos(fp_th);
+      fp_x += 0.1*Sin(fp_th);
+    }
     else if (ch == 'a')
-      fp_z -= 0.1;
+    {
+      fp_z -= 0.1*Cos(fp_th);
+      fp_x -= 0.1*Sin(fp_th);
+    }
   }
 
    
@@ -494,6 +514,9 @@ void display()
     //  Set view angle
     glRotatef(ph,1,0,0);
     glRotatef(th,0,1,0);
+    //  Display parameters
+   glWindowPos2i(5,5);
+   Print("Angle=%d,%d",th,ph,"Orthogonal");
   }
   else if (mode == 1)
   {
@@ -501,10 +524,18 @@ void display()
     double Ey = +2*dim        *Sin(ph);
     double Ez = +2*dim*Cos(th)*Cos(ph);
     gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
+    //  Display parameters
+   glWindowPos2i(5,5);
+   Print("Angle=%d,%d  Dim=%.1f FOV=%d Projection=%s",th,ph,dim,fov,"Perpective");
   }
   else
   {
-    gluLookAt(fp_x,-1.5,fp_z, Cos(fp_th),Sin(fp_ph),Sin(fp_th), 0.0,1.0,0.0);
+    gluLookAt(fp_x,-1.5,fp_z, 
+      Cos(fp_th) + fp_x,Sin(fp_ph) - 1.5,Sin(fp_th) + fp_z, 
+      0.0,1.0,0.0);
+    //  Display parameters
+   glWindowPos2i(5,5);
+   Print("Angle=%d,%d  Dim=%.1f FOV=%d Projection=%s",fp_th,fp_ph,dim,fov,"First Person");
   }
   
 
