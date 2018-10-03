@@ -19,16 +19,17 @@
 
 int th=0;         //  Azimuth of view angle
 int ph=0;         //  Elevation of view angle
-double zh_=0;      //  Rotation of teapot
+double zh_=0; 
+double zh2_=0;     
 int mode=0;       //  What to display
 double dim=5.0;
-int fov = 55;
+int fov = 57;
 double asp=1;
 const int num_modes = 3;
-double fp_x = 0.0;  // x position in first-person mode
-double fp_z = 0.0;  // y position in first-person mode
-int fp_th = 0; // Azimuth in first-person mode
-int fp_ph = 0; // Elevation in first-person mode
+double fp_x = -1.4;  // x position in first-person mode
+double fp_z = 4.8;  // y position in first-person mode
+int fp_th = 285; // Azimuth in first-person mode
+int fp_ph = 20; // Elevation in first-person mode
 
 //  Cosine and Sine in degrees
 #define Cos(x) (cos((x)*3.1415927/180))
@@ -61,7 +62,7 @@ static void Project()
   glLoadIdentity();
   //  Perspective transformation
   if (mode != 0)
-    gluPerspective(fov,asp,dim/4,4*dim);
+    gluPerspective(fov,asp,dim/8,8*dim);
   //  Orthogonal projection
   else
     glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
@@ -156,25 +157,34 @@ void key(unsigned char ch,int x,int y)
       fp_x = fp_z = 0.0;
       fp_th = fp_ph = 0;
     }
-    else if (ch == ',')
+    else if (ch == 'w')
     {
       fp_x += 0.1*Cos(fp_th);
       fp_z += 0.1*Sin(fp_th);
     }
-    else if (ch == 'o')
+    else if (ch == 's')
     {
       fp_x -= 0.1*Cos(fp_th);
       fp_z -= 0.1*Sin(fp_th);
     }
-    else if (ch == 'e')
+    else if (ch == 'd')
     {
       fp_z += 0.1*Cos(fp_th);
-      fp_x += 0.1*Sin(fp_th);
+      fp_x += -0.1*Sin(fp_th);
     }
     else if (ch == 'a')
     {
       fp_z -= 0.1*Cos(fp_th);
-      fp_x -= 0.1*Sin(fp_th);
+      fp_x -= -0.1*Sin(fp_th);
+    }
+    //  Change field of view angle
+    else if (ch == '-' && ch>1)
+    {
+      fov--;
+    }
+    else if (ch == '+' && ch<179)
+    {
+      fov++;
     }
   }
 
@@ -509,6 +519,7 @@ void display()
   glEnable(GL_DEPTH_TEST);
   //  Undo previous transformations
   glLoadIdentity();
+  glColor3f(1.0,1.0,1.0);
   if (mode == 0)
   {
     //  Set view angle
@@ -516,7 +527,7 @@ void display()
     glRotatef(th,0,1,0);
     //  Display parameters
    glWindowPos2i(5,5);
-   Print("Angle=%d,%d",th,ph,"Orthogonal");
+   Print("Angle=%d,%d   Projection=%s",th,ph,"Orthogonal");
   }
   else if (mode == 1)
   {
@@ -526,30 +537,39 @@ void display()
     gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
     //  Display parameters
    glWindowPos2i(5,5);
-   Print("Angle=%d,%d  Dim=%.1f FOV=%d Projection=%s",th,ph,dim,fov,"Perpective");
+   Print("Angle=%d,%d  Dim=%.1f FOV=%d   Projection=%s",th,ph,dim,fov,"Perpective");
   }
   else
   {
-    gluLookAt(fp_x,-1.5,fp_z, 
-      Cos(fp_th) + fp_x,Sin(fp_ph) - 1.5,Sin(fp_th) + fp_z, 
+    gluLookAt(fp_x,-1.4,fp_z, 
+      Cos(fp_th) + fp_x,Sin(fp_ph) - 1.4,Sin(fp_th) + fp_z, 
       0.0,1.0,0.0);
     //  Display parameters
    glWindowPos2i(5,5);
-   Print("Angle=%d,%d  Dim=%.1f FOV=%d Projection=%s",fp_th,fp_ph,dim,fov,"First Person");
+   Print("Angle=%d,%d  Position=%.1f,%.1f   Projection=%s",fp_th,fp_ph,fp_x,fp_z,"First Person");
   }
   
 
   // draw flying airplanes
   glScaled(0.5, 0.5, 0.5);
-  drawPiperCub(3.25*Cos(zh_),3,3.25*Sin(zh_),
+  drawPiperCub(3.25*Cos(zh_),2.5,3.25*Sin(zh_),
     -Sin(zh_),0,Cos(zh_),
     -0.75*Cos(zh_),1,-0.75*Sin(zh_));
+  drawPiperCub(4.5*Cos(zh2_)+2.5,4.5,4.5*Sin(zh2_)-2.5,
+    Sin(zh2_),0,-Cos(zh2_),
+    -0.75*Cos(zh2_),1,-0.75*Sin(zh2_));
 
   // draw airplanes on ground
   drawPiperCub(-1,-3,1.5,
     1,0.15,0.025,
     -0.15,1,0);
   drawPiperCub(-1,-3,-1.5,
+    1,0.15,-0.05,
+    -0.15,1,0);
+  drawPiperCub(-1,-3,4.5,
+    1,0.15,-0.05,
+    -0.15,1,0);
+  drawPiperCub(-1,-3,-4.5,
     1,0.15,-0.05,
     -0.15,1,0);
 
@@ -572,6 +592,7 @@ void idle()
 {
   double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
   zh_ = fmod(90*t,360);
+  zh2_ = fmod(-70*t,360);
   Project();
   glutPostRedisplay();
 }
