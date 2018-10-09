@@ -7,6 +7,26 @@ void pointOnCircle(double th, double r, double c_x, double c_y, double c_z)
   glVertex3d(c_x, c_y + (r*Cos(th)), c_z + (r*Sin(th)));
 }
 
+void pointOnCircle2(double th, double r, double c_x, double c_y, double c_z,
+                   double *px, double *py, double *pz)
+{
+  *px = c_x;
+  *py = c_y + r*Cos(th);
+  *pz = c_z + r*Sin(th);
+}
+
+void getCowlNorms(double aft_x, double aft_y, 
+                  double fwd_x, double fwd_y, double th)
+{
+  double norm_i = aft_y - fwd_y;
+  double norm_j = aft_x - fwd_x;
+  double l = sqrt(norm_i*norm_i + norm_j*norm_j);
+  norm_j = l*Cos(th);
+  double norm_k = l*Sin(th);
+
+  glNormal3f(norm_i, norm_j, norm_k);
+}
+
 // sets the normal vector as a unit vector parallel to the 
 // cross product of the two vectors from c to a and c to b
 void crossProduct(double a_i, double a_j, double a_k,
@@ -33,40 +53,6 @@ void crossProduct(double a_i, double a_j, double a_k,
     r[i] /= norm;
 
   glNormal3f(r[0],r[1],r[2]);
-}
-
-// sets the normal vector as a unit vector parallel to the 
-// cross product of the two vectors from c to a and c to b
-void crossProductPrint(double a_i, double a_j, double a_k,
-  double b_i, double b_j, double b_k,
-  double c_i, double c_j, double c_k)
-{
-  float a_vec_i = a_i - c_i;
-  float a_vec_j = a_j - c_j;
-  float a_vec_k = a_k - c_k;
-  float b_vec_i = b_i - c_i;
-  float b_vec_j = b_j - c_j;
-  float b_vec_k = b_k - c_k;
-
-  float r[3];
-  r[0] = a_vec_j*b_vec_k - a_vec_k*b_vec_j;
-  r[1] = a_vec_k*b_vec_i - a_vec_i*b_vec_k;
-  r[2] = a_vec_i*b_vec_j - a_vec_j*b_vec_i;
-
-  // calculate norm
-  float norm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
-
-  printf("%f %f %f \n", a_vec_i, a_vec_j, a_vec_k);
-  printf("%f %f %f \n", b_vec_i, b_vec_j, b_vec_k);
-  printf("%f %f %f \n", r[0], r[1], r[2]);
-
-  // normalize
-  for (int i = 0; i < 3; i++) 
-    r[i] /= norm;
-
-  glNormal3f(r[0],r[1],r[2]);
-
-  printf("%f %f %f \n\n", r[0], r[1], r[2]);
 }
 
 /*
@@ -252,32 +238,59 @@ static void drawFuselage()
   double fwd_cowl = 0.45;
   double horiz_increment = cowling_side * 0.5;
   double horiz_position = -1. * cowling_side;
+  int fwd_cowl_angle = 35;
+
   for (double th = -45; th <= 45; th += 22.5)
   {
+    double px, py, pz;
+    pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
+    getCowlNorms(firewall, cowling_top, px, py, th);
     glVertex3d(firewall, cowling_top, horiz_position);
-    pointOnCircle(th,radius,fwd_cowl,cowl_y_center,0.0);
+
+    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glVertex3d(px,py,pz);
     horiz_position += horiz_increment;
   }
+
   double vert_increment = 0.25*(cowling_top - cowling_bottom);
   double vert_position = cowling_top;
+
   for (double th = 45; th <= 135; th += 22.5)
   {
+    double px, py, pz;
+    pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
+    getCowlNorms(firewall, vert_position, px, py, th);
     glVertex3d(firewall, vert_position, cowling_side);
-    pointOnCircle(th,radius,fwd_cowl,cowl_y_center,0.0);
+
+    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glVertex3d(px,py,pz);
+    
     vert_position -= vert_increment;
   }
   horiz_position -= horiz_increment;
   for(double th = 135; th <= 225; th += 22.5)
   {
+    double px, py, pz;
+    pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
+    getCowlNorms(firewall, cowling_bottom, px, py, th);
     glVertex3d(firewall, cowling_bottom, horiz_position);
-    pointOnCircle(th,radius,fwd_cowl,cowl_y_center,0.0);
+
+    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glVertex3d(px,py,pz);
+    
     horiz_position -= horiz_increment;
   }
   vert_position += vert_increment;
   for(double th = 225; th <= 315; th += 22.5)
   {
+    double px, py, pz;
+    pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
+    getCowlNorms(firewall, vert_position, px, py, th);
     glVertex3d(firewall, vert_position, -1 * cowling_side);
-    pointOnCircle(th,radius,fwd_cowl,cowl_y_center,0.0);
+
+    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glVertex3d(px,py,pz);
+    
     vert_position += vert_increment;
   }
 
@@ -286,11 +299,17 @@ static void drawFuselage()
   // fwd cowling
   double nose = 0.49;
   glColor3f(0.7,0.1,0.3);
-  glBegin(GL_TRIANGLE_FAN);
-  glVertex3d(nose, cowl_y_center, 0.0);
+  glBegin(GL_TRIANGLE_STRIP);
+  
   for (double th = 0; th <= 360; th += 22.5)
   {
-    pointOnCircle(th,radius,fwd_cowl,cowl_y_center,0.0);
+    double px, py, pz;
+    pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
+    glNormal3f(Sin(fwd_cowl_angle), Cos(th), Sin(th));
+    glVertex3d(px,py,pz);
+
+    glNormal3f(1,0,0);
+    glVertex3d(nose, cowl_y_center, 0.0);
   }
 
   glEnd();
