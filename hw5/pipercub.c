@@ -1,217 +1,37 @@
-/*
- *  Scene in 3D
- *  
- *  Creates a watertight airplane in 3D
- *
- */
+#include "CSCIx229.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
-//  OpenGL with prototypes for glext
-#define GL_GLEXT_PROTOTYPES
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-
-int th=0;         //  Azimuth of view angle
-int ph=0;         //  Elevation of view angle
-double zh_=0; 
-double zh2_=0;     
-int mode=0;       //  What to display
-double dim=5.0;
-int fov = 57;
-double asp=1;
-const int num_modes = 3;
-double fp_x = -1.4;  // x position in first-person mode
-double fp_z = 4.8;  // y position in first-person mode
-int fp_th = 285; // Azimuth in first-person mode
-int fp_ph = 20; // Elevation in first-person mode
-
-//  Cosine and Sine in degrees
-#define Cos(x) (cos((x)*3.1415927/180))
-#define Sin(x) (sin((x)*3.1415927/180))
-
-/*
- *  Convenience routine to output raster text
- *  Use VARARGS to make this more flexible
- */
-#define LEN 8192  //  Maximum length of text string
-void Print(const char* format , ...)
-{
-  char    buf[LEN];
-  char*   ch=buf;
-  va_list args;
-   //  Turn the parameters into a character string
-  va_start(args,format);
-  vsnprintf(buf,LEN,format,args);
-  va_end(args);
-  //  Display the characters one at a time at the current raster position
-  while (*ch)
-  glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,*ch++);
-}
-
-static void Project()
-{
-  //  Tell OpenGL we want to manipulate the projection matrix
-  glMatrixMode(GL_PROJECTION);
-  //  Undo previous transformations
-  glLoadIdentity();
-  //  Perspective transformation
-  if (mode != 0)
-    gluPerspective(fov,asp,dim/8,8*dim);
-  //  Orthogonal projection
-  else
-    glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
-  //  Switch to manipulating the model matrix
-  glMatrixMode(GL_MODELVIEW);
-  //  Undo previous transformations
-  glLoadIdentity();
-}
-
-/*
- *  GLUT calls this routine when an arrow key is pressed
- */
-void special(int key,int x,int y)
-{
-  if (mode != 2)
-  {
-    //  Right arrow key - increase angle by 5 degrees
-    if (key == GLUT_KEY_RIGHT)
-      th += 5;
-    //  Left arrow key - decrease angle by 5 degrees
-    else if (key == GLUT_KEY_LEFT)
-      th -= 5;
-    //  Up arrow key - increase elevation by 5 degrees
-    else if (key == GLUT_KEY_UP)
-      ph += 5;
-    //  Down arrow key - decrease elevation by 5 degrees
-    else if (key == GLUT_KEY_DOWN)
-    ph -= 5;
-    //  Keep angles to +/-360 degrees
-    th %= 360;
-    ph %= 360;
-  }
-  else
-  {
-    if (key == GLUT_KEY_RIGHT)
-      fp_th += 5;
-    else if (key == GLUT_KEY_LEFT)
-      fp_th -= 5;
-    else if (key == GLUT_KEY_UP)
-      fp_ph += 5;
-    else if (key == GLUT_KEY_DOWN)
-      fp_ph -= 5;
-
-    // constrain azimuth to [0,360]
-    fp_th %= 360;
-    // constrain elevation to [-90,90]
-    if (fp_ph > 90) fp_ph = 90;
-    if (fp_ph < -90) fp_ph = -90;
-  }
-  //  Tell GLUT it is necessary to redisplay the scene
-  Project();
-  glutPostRedisplay();
-}
-
-/*
- *  GLUT calls this routine when a key is pressed
- */
-void key(unsigned char ch,int x,int y)
-{
-  //  Exit on ESC
-  if (ch == 27)
-  {
-    exit(0);
-  }
-  else if (ch == 'm' || ch == 'M')
-  {
-    mode += 1;
-    mode %= num_modes;
-  }
-
-  if (mode != 2)
-  {
-    //  Reset view angle
-    if (ch == '0')
-    {
-      th = ph = 0;
-    }
-    //  Change field of view angle
-    else if (ch == '-' && ch>1)
-    {
-      fov--;
-    }
-    else if (ch == '+' && ch<179)
-    {
-      fov++;
-    }
-  }
-  else
-  {
-    if (ch == '0')
-    {
-      fp_x = -1.4;
-      fp_z = 4.8;
-      fp_th = 285;
-      fp_ph = 20;
-    }
-    else if (ch == 'w')
-    {
-      fp_x += 0.1*Cos(fp_th);
-      fp_z += 0.1*Sin(fp_th);
-    }
-    else if (ch == 's')
-    {
-      fp_x -= 0.1*Cos(fp_th);
-      fp_z -= 0.1*Sin(fp_th);
-    }
-    else if (ch == 'd')
-    {
-      fp_z += 0.1*Cos(fp_th);
-      fp_x += -0.1*Sin(fp_th);
-    }
-    else if (ch == 'a')
-    {
-      fp_z -= 0.1*Cos(fp_th);
-      fp_x -= -0.1*Sin(fp_th);
-    }
-    //  Change field of view angle
-    else if (ch == '-' && ch>1)
-    {
-      fov--;
-    }
-    else if (ch == '+' && ch<179)
-    {
-      fov++;
-    }
-  }
-
-   
-  //  Tell GLUT it is necessary to redisplay the scene
-  Project();
-  glutPostRedisplay();
-}
-
-/*
- *  GLUT calls this routine when the window is resized
- */
-void reshape(int width,int height)
-{
- //  Ratio of the width to the height of the window
- asp = (height>0) ? (double)width/height : 1;
- //  Set the viewport to the entire window
- glViewport(0,0, width,height);
- //  Set projection
- Project();
-}
 
 void pointOnCircle(double th, double r, double c_x, double c_y, double c_z)
 {
   glVertex3d(c_x, c_y + (r*Cos(th)), c_z + (r*Sin(th)));
+}
+
+// sets the normal vector as a unit vector parallel to the 
+// cross product of the two vectors from c to a and c to b
+void crossProduct(double a_i, double a_j, double a_k,
+  double b_i, double b_j, double b_k,
+  double c_i, double c_j, double c_k)
+{
+  double a_vec_i = a_i - c_i;
+  double a_vec_j = a_j - c_j;
+  double a_vec_k = a_k - c_k;
+  double b_vec_i = b_i - c_i;
+  double b_vec_j = b_j - c_j;
+  double b_vec_k = b_k - c_k;
+
+  double r[3];
+  r[0] = a_vec_j*b_vec_k - a_vec_k*b_vec_j;
+  r[1] = a_vec_i*b_vec_k - a_vec_k*b_vec_i;
+  r[2] = a_vec_i*b_vec_j - a_vec_j*b_vec_i;
+
+  // calculate norm
+  double norm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+
+  // normalize
+  for (int i = 0; i < 3; i++) 
+    r[i] /= norm;
+
+  glNormal3f(r[0],r[1],r[2]);
 }
 
 /*
@@ -228,6 +48,9 @@ static void drawFuselage()
   double tail_boom_front = -0.25;
 
   glColor3f(1,0,0);
+  crossProduct(tail, 0.1, 0.0,
+               tail_boom_front, fwd_tail_top, 0.0875,
+               tail, tail_top, 0.0);
   glVertex3d(tail, tail_top, 0.0);
   glVertex3d(tail, 0.1, 0.0);
   glVertex3d(tail_boom_front, 0.025, 0.0875);
@@ -235,6 +58,9 @@ static void drawFuselage()
 
   // aft tail boom left side
   glColor3f(0,1,0);
+  crossProduct(tail_boom_front, fwd_tail_top, -0.0875,
+               tail, 0.1, 0.0,
+               tail, tail_top, 0.0);
   glVertex3d(tail, 0.1, 0.0);
   glVertex3d(tail, tail_top, 0.0);
   glVertex3d(tail_boom_front, fwd_tail_top, -0.0875);
@@ -242,6 +68,9 @@ static void drawFuselage()
 
   // aft tail boom top
   glColor3f(0,0,1);
+  crossProduct(tail_boom_front, fwd_tail_top, -0.875,
+               tail_boom_front, fwd_tail_top, 0.0875,
+               tail, tail_top, 0.0);
   glVertex3d(tail, tail_top, 0.0);
   glVertex3d(tail, tail_top, 0.0);
   glVertex3d(tail_boom_front, fwd_tail_top, 0.0875);
@@ -249,6 +78,9 @@ static void drawFuselage()
 
   // aft tail boom bottom
   glColor3d(0.5,0.5,0);
+  crossProduct(tail_boom_front, 0.025, 0.0875,
+               tail_boom_front, 0.025, -0.875,
+               tail, 0.1, 0.0);
   glVertex3d(tail, 0.1, 0.0);
   glVertex3d(tail, 0.1, 0.0);
   glVertex3d(tail_boom_front, 0.025, -0.0875);
@@ -260,6 +92,9 @@ static void drawFuselage()
 
   // fwd tail boom right side
   glColor3f(0.5,1,0);
+  crossProduct(tail_boom_front, 0.025, 0.0875,
+               fwd_tail_front, door_top, 0.10,
+               tail_boom_front, fwd_tail_top, 0.0875);
   glVertex3d(tail_boom_front, fwd_tail_top, 0.0875);
   glVertex3d(tail_boom_front, 0.025, 0.0875);
   glVertex3d(fwd_tail_front, door_bottom, 0.10);
@@ -267,6 +102,9 @@ static void drawFuselage()
 
   // fwd tail boom left side
   glColor3f(0,0.5,1);
+  crossProduct(fwd_tail_front, door_top, -0.10,
+               tail_boom_front, 0.025, -0.0875,
+               tail_boom_front, fwd_tail_top, -0.0875);
   glVertex3d(tail_boom_front, 0.025, -0.0875);
   glVertex3d(tail_boom_front, fwd_tail_top, -0.0875);
   glVertex3d(fwd_tail_front, door_top, -0.10);
@@ -274,6 +112,9 @@ static void drawFuselage()
 
   // fwd tail boom top
   glColor3f(0,1,1);
+  crossProduct(fwd_tail_front, door_top, 0.10,
+               tail_boom_front, fwd_tail_top, -0.875,
+               tail_boom_front, fwd_tail_top, 0.875);
   glVertex3d(tail_boom_front, fwd_tail_top, 0.0875);
   glVertex3d(fwd_tail_front, door_top, 0.10);
   glVertex3d(fwd_tail_front, door_top, -0.10);
@@ -281,6 +122,9 @@ static void drawFuselage()
 
   // fwd tail boom bottom
   glColor3f(0,0.5,0.5);
+  crossProduct(tail_boom_front, 0.025, 0.0875,
+               fwd_tail_front, door_bottom, -0.10,
+               tail_boom_front, 0.025, -0.0875);
   glVertex3d(tail_boom_front, 0.025, -0.0875);
   glVertex3d(tail_boom_front, 0.025, 0.0875);
   glVertex3d(fwd_tail_front, door_bottom, 0.10);
@@ -288,6 +132,9 @@ static void drawFuselage()
 
   // right door
   glColor3f(0.5,0.5,0.5);
+  crossProduct(fwd_tail_front, door_bottom, 0.10,
+               0.25, door_top, 0.10,
+               fwd_tail_front, door_top, 0.10);
   glVertex3d(fwd_tail_front, door_top, 0.10);
   glVertex3d(fwd_tail_front, door_bottom, 0.10);
   glVertex3d(0.25, door_bottom, 0.10);
@@ -295,6 +142,9 @@ static void drawFuselage()
 
   // left door
   glColor3f(0.5,0,0.5);
+  crossProduct(0.25, door_top, -0.10,
+               fwd_tail_front, door_bottom, -0.10,
+               fwd_tail_front, door_top, -0.10);
   glVertex3d(fwd_tail_front, door_bottom, -0.10);
   glVertex3d(fwd_tail_front, door_top, -0.10);
   glVertex3d(0.25, door_top, -0.10);
@@ -302,6 +152,9 @@ static void drawFuselage()
 
   // belly
   glColor3f(0.5,0.25,0.25);
+  crossProduct(fwd_tail_front, door_bottom, 0.1,
+               0.25, door_bottom, -0.1,
+               fwd_tail_front, door_bottom, -0.1);
   glVertex3d(fwd_tail_front, door_bottom, 0.1);
   glVertex3d(fwd_tail_front, door_bottom, -0.1);
   glVertex3d(0.25, door_bottom, -0.1);
@@ -316,6 +169,9 @@ static void drawFuselage()
 
   // windscreen
   glColor3f(0.1,0.5,0.1);
+  crossProduct(firewall, cowling_top, cowling_side,
+               0.25, door_top, 0.1,
+               0.25, door_top, -0.1);
   glVertex3d(0.25, door_top, 0.1);
   glVertex3d(0.25, door_top, -0.1);
   glVertex3d(firewall, cowling_top, -1. * cowling_side);
@@ -323,6 +179,9 @@ static void drawFuselage()
 
   // fwd fuselage right
   glColor3f(0.25,0.25,0.1);
+  crossProduct(0.25, door_bottom, 0.1,
+               firewall, cowling_top, cowling_side,
+               0.25, door_top, 0.1);
   glVertex3d(0.25, door_top, 0.1);
   glVertex3d(0.25, door_bottom, 0.1);
   glVertex3d(firewall, cowling_bottom, cowling_side);
@@ -330,6 +189,9 @@ static void drawFuselage()
 
   // fwd fuselage left
   glColor3f(0.5, 0.1, 0.1);
+  crossProduct(firewall, cowling_top, -1. * cowling_side,
+               0.25, door_bottom, -0.1,
+               0.25, door_top, -0.1);
   glVertex3d(0.25, door_bottom, -0.1);
   glVertex3d(0.25, door_top, -0.1);
   glVertex3d(firewall, cowling_top, -1. * cowling_side);
@@ -337,6 +199,9 @@ static void drawFuselage()
 
   // fwd belly
   glColor3f(0.2, 0.1, 0.2);
+  crossProduct(firewall, cowling_bottom, cowling_side,
+               0.25, door_bottom, -0.1,
+               0.25, door_bottom, 0.1);
   glVertex3d(0.25, door_bottom, -0.1);
   glVertex3d(firewall, cowling_bottom, -1. * cowling_side);
   glVertex3d(firewall, cowling_bottom, cowling_side);
@@ -473,7 +338,7 @@ static void drawHStab()
  *    nose towards (dx,dy,dz)
  *    up towards (ux,uy,uz)
  */
-static void drawPiperCub(double x,double y,double z,
+void drawPiperCub(double x,double y,double z,
   double dx,double dy,double dz,
   double ux,double uy, double uz)
 {
@@ -511,117 +376,4 @@ static void drawPiperCub(double x,double y,double z,
   drawHStab();
 
   glPopMatrix();
-}
-
-void display()
-{
-  //  Erase the window and the depth buffer
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-  //  Enable Z-buffering in OpenGL
-  glEnable(GL_DEPTH_TEST);
-  //  Undo previous transformations
-  glLoadIdentity();
-  glColor3f(1.0,1.0,1.0);
-  if (mode == 0)
-  {
-    //  Set view angle
-    glRotatef(ph,1,0,0);
-    glRotatef(th,0,1,0);
-    //  Display parameters
-   glWindowPos2i(5,5);
-   Print("Angle=%d,%d   Projection=%s",th,ph,"Orthogonal");
-  }
-  else if (mode == 1)
-  {
-    double Ex = -2*dim*Sin(th)*Cos(ph);
-    double Ey = +2*dim        *Sin(ph);
-    double Ez = +2*dim*Cos(th)*Cos(ph);
-    gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
-    //  Display parameters
-   glWindowPos2i(5,5);
-   Print("Angle=%d,%d  Dim=%.1f FOV=%d   Projection=%s",th,ph,dim,fov,"Perpective");
-  }
-  else
-  {
-    gluLookAt(fp_x,-1.4,fp_z, 
-      Cos(fp_th) + fp_x,Sin(fp_ph) - 1.4,Sin(fp_th) + fp_z, 
-      0.0,1.0,0.0);
-    //  Display parameters
-   glWindowPos2i(5,5);
-   Print("Angle=%d,%d  Position=%.1f,%.1f   Projection=%s",fp_th,fp_ph,fp_x,fp_z,"First Person");
-  }
-  
-
-  // draw flying airplanes
-  glScaled(0.5, 0.5, 0.5);
-  drawPiperCub(3.25*Cos(zh_),2.5,3.25*Sin(zh_),
-    -Sin(zh_),0,Cos(zh_),
-    -0.75*Cos(zh_),1,-0.75*Sin(zh_));
-  drawPiperCub(4.5*Cos(zh2_)+2.5,4.5,4.5*Sin(zh2_)-2.5,
-    Sin(zh2_),0,-Cos(zh2_),
-    -0.75*Cos(zh2_),1,-0.75*Sin(zh2_));
-
-  // draw airplanes on ground
-  drawPiperCub(-1,-3,1.5,
-    1,0.15,0.025,
-    -0.15,1,0);
-  drawPiperCub(-1,-3,-1.5,
-    1,0.15,-0.05,
-    -0.15,1,0);
-  drawPiperCub(-1,-3,4.5,
-    1,0.15,-0.05,
-    -0.15,1,0);
-  drawPiperCub(-1,-3,-4.5,
-    1,0.15,-0.05,
-    -0.15,1,0);
-
-  // draw ground
-  glBegin(GL_QUADS);
-  glColor3f(0.0,.7,0.20);
-  glVertex3d(-10.,-3.1,-10.);
-  glVertex3d(-10.,-3.1,10.);
-  glVertex3d(10.,-3.1,10.);
-  glVertex3d(10.,-3.1,-10.);
-  glEnd();
-
-  glWindowPos2i(5,5);
-
-  glFlush();
-  glutSwapBuffers();
-}
-
-void idle()
-{
-  double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
-  zh_ = fmod(90*t,360);
-  zh2_ = fmod(-70*t,360);
-  Project();
-  glutPostRedisplay();
-}
-
-/*
- *  Start up GLUT and tell it what to do
- */
-int main(int argc,char* argv[])
-{
-  //  Initialize GLUT and process user parameters
-  glutInit(&argc,argv);
-  //  Request double buffered, true color window with Z buffering at 600x600
-  glutInitWindowSize(600,600);
-  glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-  //  Create the window
-  glutCreateWindow("Andrew Kramer: hw4");
-  //  Tell GLUT to call "idle" when there is nothing else to do
-  glutIdleFunc(idle);
-  //  Tell GLUT to call "display" when the scene should be drawn
-  glutDisplayFunc(display);
-  //  Tell GLUT to call "reshape" when the window is resized
-  glutReshapeFunc(reshape);
-  //  Tell GLUT to call "special" when an arrow key is pressed
-  glutSpecialFunc(special);
-  //  Tell GLUT to call "key" when a key is pressed
-  glutKeyboardFunc(key);
-  //  Pass control to GLUT so it can interact with the user
-  glutMainLoop();
-  return 0;
 }
