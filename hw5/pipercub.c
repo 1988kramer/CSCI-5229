@@ -12,20 +12,20 @@ void crossProduct(double a_i, double a_j, double a_k,
   double b_i, double b_j, double b_k,
   double c_i, double c_j, double c_k)
 {
-  double a_vec_i = a_i - c_i;
-  double a_vec_j = a_j - c_j;
-  double a_vec_k = a_k - c_k;
-  double b_vec_i = b_i - c_i;
-  double b_vec_j = b_j - c_j;
-  double b_vec_k = b_k - c_k;
+  float a_vec_i = a_i - c_i;
+  float a_vec_j = a_j - c_j;
+  float a_vec_k = a_k - c_k;
+  float b_vec_i = b_i - c_i;
+  float b_vec_j = b_j - c_j;
+  float b_vec_k = b_k - c_k;
 
-  double r[3];
+  float r[3];
   r[0] = a_vec_j*b_vec_k - a_vec_k*b_vec_j;
   r[1] = a_vec_i*b_vec_k - a_vec_k*b_vec_i;
   r[2] = a_vec_i*b_vec_j - a_vec_j*b_vec_i;
 
   // calculate norm
-  double norm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+  float norm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
 
   // normalize
   for (int i = 0; i < 3; i++) 
@@ -170,8 +170,8 @@ static void drawFuselage()
   // windscreen
   glColor3f(0.1,0.5,0.1);
   crossProduct(firewall, cowling_top, cowling_side,
-               0.25, door_top, 0.1,
-               0.25, door_top, -0.1);
+               0.25, door_top, -0.1,
+               0.25, door_top, 0.1);
   glVertex3d(0.25, door_top, 0.1);
   glVertex3d(0.25, door_top, -0.1);
   glVertex3d(firewall, cowling_top, -1. * cowling_side);
