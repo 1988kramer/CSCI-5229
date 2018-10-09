@@ -1,4 +1,5 @@
 #include "CSCIx229.h"
+#include <stdbool.h>
 
 
 void pointOnCircle(double th, double r, double c_x, double c_y, double c_z)
@@ -21,7 +22,7 @@ void crossProduct(double a_i, double a_j, double a_k,
 
   float r[3];
   r[0] = a_vec_j*b_vec_k - a_vec_k*b_vec_j;
-  r[1] = a_vec_i*b_vec_k - a_vec_k*b_vec_i;
+  r[1] = a_vec_k*b_vec_i - a_vec_i*b_vec_k;
   r[2] = a_vec_i*b_vec_j - a_vec_j*b_vec_i;
 
   // calculate norm
@@ -32,6 +33,40 @@ void crossProduct(double a_i, double a_j, double a_k,
     r[i] /= norm;
 
   glNormal3f(r[0],r[1],r[2]);
+}
+
+// sets the normal vector as a unit vector parallel to the 
+// cross product of the two vectors from c to a and c to b
+void crossProductPrint(double a_i, double a_j, double a_k,
+  double b_i, double b_j, double b_k,
+  double c_i, double c_j, double c_k)
+{
+  float a_vec_i = a_i - c_i;
+  float a_vec_j = a_j - c_j;
+  float a_vec_k = a_k - c_k;
+  float b_vec_i = b_i - c_i;
+  float b_vec_j = b_j - c_j;
+  float b_vec_k = b_k - c_k;
+
+  float r[3];
+  r[0] = a_vec_j*b_vec_k - a_vec_k*b_vec_j;
+  r[1] = a_vec_k*b_vec_i - a_vec_i*b_vec_k;
+  r[2] = a_vec_i*b_vec_j - a_vec_j*b_vec_i;
+
+  // calculate norm
+  float norm = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+
+  printf("%f %f %f \n", a_vec_i, a_vec_j, a_vec_k);
+  printf("%f %f %f \n", b_vec_i, b_vec_j, b_vec_k);
+  printf("%f %f %f \n", r[0], r[1], r[2]);
+
+  // normalize
+  for (int i = 0; i < 3; i++) 
+    r[i] /= norm;
+
+  glNormal3f(r[0],r[1],r[2]);
+
+  printf("%f %f %f \n\n", r[0], r[1], r[2]);
 }
 
 /*
@@ -68,8 +103,8 @@ static void drawFuselage()
 
   // aft tail boom top
   glColor3f(0,0,1);
-  crossProduct(tail_boom_front, fwd_tail_top, -0.875,
-               tail_boom_front, fwd_tail_top, 0.0875,
+  crossProduct(tail_boom_front, fwd_tail_top, 0.0875,
+               tail_boom_front, fwd_tail_top, -0.875,
                tail, tail_top, 0.0);
   glVertex3d(tail, tail_top, 0.0);
   glVertex3d(tail, tail_top, 0.0);
@@ -78,8 +113,8 @@ static void drawFuselage()
 
   // aft tail boom bottom
   glColor3d(0.5,0.5,0);
-  crossProduct(tail_boom_front, 0.025, 0.0875,
-               tail_boom_front, 0.025, -0.875,
+  crossProduct(tail_boom_front, 0.025, -0.0875,
+               tail_boom_front, 0.025, 0.875,
                tail, 0.1, 0.0);
   glVertex3d(tail, 0.1, 0.0);
   glVertex3d(tail, 0.1, 0.0);
@@ -122,8 +157,8 @@ static void drawFuselage()
 
   // fwd tail boom bottom
   glColor3f(0,0.5,0.5);
-  crossProduct(tail_boom_front, 0.025, 0.0875,
-               fwd_tail_front, door_bottom, -0.10,
+  crossProduct(fwd_tail_front, door_bottom, -0.10,
+               tail_boom_front, 0.025, 0.0875,
                tail_boom_front, 0.025, -0.0875);
   glVertex3d(tail_boom_front, 0.025, -0.0875);
   glVertex3d(tail_boom_front, 0.025, 0.0875);
@@ -152,8 +187,8 @@ static void drawFuselage()
 
   // belly
   glColor3f(0.5,0.25,0.25);
-  crossProduct(fwd_tail_front, door_bottom, 0.1,
-               0.25, door_bottom, -0.1,
+  crossProduct(0.25, door_bottom, -0.1,
+               fwd_tail_front, door_bottom, 0.1,
                fwd_tail_front, door_bottom, -0.1);
   glVertex3d(fwd_tail_front, door_bottom, 0.1);
   glVertex3d(fwd_tail_front, door_bottom, -0.1);
@@ -199,8 +234,8 @@ static void drawFuselage()
 
   // fwd belly
   glColor3f(0.2, 0.1, 0.2);
-  crossProduct(firewall, cowling_bottom, cowling_side,
-               0.25, door_bottom, -0.1,
+  crossProduct(0.25, door_bottom, -0.1,
+               firewall, cowling_bottom, cowling_side,
                0.25, door_bottom, 0.1);
   glVertex3d(0.25, door_bottom, -0.1);
   glVertex3d(firewall, cowling_bottom, -1. * cowling_side);
