@@ -444,18 +444,42 @@ static void drawHStab()
 {
   double stab_height = 0.15;
   int num_points = 7;
+  int norm_th[] = {0, 340, 315, 270, 225, 150, 135};
   double cross_sec_x[] = {-0.65, -0.66, -0.71, -0.88, -0.95, -0.95, -0.87};
   double cross_sec_z[] = {0.0, 0.07, 0.15, 0.30, 0.25, 0.08, 0.0};
+  double offset = .005;
+  double y_dir = -1.;
+  double z_dir = -1.;
 
   glColor3f(0.7,0.3,0.5);
   
-  for (int j = 0; j < 2; j++)
+  for (int k = 0; k < 2; k++)
   {
-    glBegin(GL_POLYGON);
+    z_dir *= -1.;
+    for (int j = 0; j < 2; j++)
+    {
+      y_dir *= -1.;
+      glBegin(GL_POLYGON);
+      glNormal3f(0.0, y_dir, 0.0);
+      for (int i = 0; i < num_points; i++)
+      {
+        glVertex3d(cross_sec_x[i], 
+                   stab_height + (offset*y_dir), 
+                   cross_sec_z[i]*z_dir);
+      }
+      glEnd();
+    }
+    glBegin(GL_QUAD_STRIP);
     for (int i = 0; i < num_points; i++)
     {
-      cross_sec_z[i] *= -1.0;
-      glVertex3d(cross_sec_x[i], stab_height, cross_sec_z[i]);
+      glNormal3f(Sin(norm_th[i]*z_dir),0.0,
+                 Cos(norm_th[i]*z_dir));
+      glVertex3d(cross_sec_x[i],
+                 stab_height + offset, 
+                 cross_sec_z[i]*z_dir);
+      glVertex3d(cross_sec_x[i],
+                 stab_height - offset,
+                 cross_sec_z[i]*z_dir);
     }
     glEnd();
   }
