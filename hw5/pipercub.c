@@ -352,8 +352,6 @@ static void drawWing()
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
-    
-
     // find indices of next and previous points
     int last_i = (i-1)%num_points;
     int next_i = (i+1)%num_points;
@@ -408,15 +406,37 @@ static void drawWing()
 static void drawVStab()
 {
   int num_points = 7;
+  double norm_th[] = {270, 270, 270, 200, 140, 90, 50};
   double cross_sec_x[] = {-0.65, -0.85, -0.85, -0.95, -0.90, -0.85, -0.80};
   double cross_sec_y[] = {0.17, 0.17, 0.11, 0.14, 0.35, 0.38, 0.35};
+  double offset = 0.005;
+  double direction = -1.0;
 
   glColor3f(0.1,0.8,0.3);
-  glBegin(GL_POLYGON);
+  
+  // draw sides of v-stab
+  for (int j = 0; j < 2; j++)
+  {
+    direction *= -1.0;
+    glBegin(GL_POLYGON);
+    glNormal3f(0,0,direction);
+    for (int i = 0; i < num_points; i++)
+    {
+      glVertex3d(cross_sec_x[i], cross_sec_y[i], direction*offset);
+    }
+    glEnd();
+  }
+
+  glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
-    glVertex3d(cross_sec_x[i], cross_sec_y[i], 0.0);
+    glNormal3f(Cos(norm_th[i]),Sin(norm_th[i]),0.0);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], offset);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], -1.0*offset);
   }
+  glNormal3f(Cos(norm_th[num_points-1]),Sin(norm_th[num_points-1]),0.0);
+  glVertex3d(cross_sec_x[0], cross_sec_y[0], offset);
+  glVertex3d(cross_sec_x[0], cross_sec_y[0], -1.0*offset);
   glEnd();
 }
 
