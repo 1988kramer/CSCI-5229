@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+
+% ==== PACKAGES ==== %
+% \usepackage{fullpage}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage[letterpaper, margin=1in]{geometry}
+
+% ==== MARGINS ==== %
+% \pagestyle{empty}
+% \setlength{\oddsidemargin}{0in}
+% \setlength{\textwidth}{6.8in}
+% \setlength{\textheight}{9.5in}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{CSCI 5229}
+\lhead{Project Proposal}
+\rfoot{Page \thepage}
+
+
+\newtheorem*{solution*}{Solution}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem{corollary}[lemma]{Corollary}
+\lstset{moredelim=[is][\bfseries]{[*}{*]}}
+
+% ==== DOCUMENT PROPER ==== %
+\begin{document}
+
+\thispagestyle{empty}
+
+% --- Header Box --- %
+\newlength{\boxlength}\setlength{\boxlength}{\textwidth}
+\addtolength{\boxlength}{-4mm}
+
+\begin{center}\framebox{\parbox{\boxlength}{\bf
+      Computer Graphics \hfill Project Proposal\\
+      CSCI 5229 Fall 2018 \hfill Due Date: Oct 17, 2018\\
+      Name: Andrew Kramer \hfill 
+}}
+\end{center}
+
+\section*{Project Theme}
+This project will focus on creating a graphical frontend for a simultaneous localization and mapping program. It will render a vehicle that will move through a simulated environment, tracking the movement of the physical vehicle being tracked by the SLAM system. The simulated vehicle will accurately track both the location and orientation of the vehicle being tracked by the SLAM system. The environment will be mostly empty apart from a sky box because the vehicles movements can't be predicted and collisions with the environment would not be avoidable. Additionally, it will have options to display the previous poses of the vehicle and the landmarks being tracked. Also, because running a SLAM system on live sensors will not be practical for demonstration purposes, it will include the ability to run from logged poses rather than the output of a SLAM system.
+
+\section*{Deliverables}
+
+\subsection*{Required}
+\begin{itemize}
+\item Simulated vehicle accurately tracks estimated pose from SLAM or log file.
+\item Simulated vehicle stays within the environment's skybox.
+\item Simulated vehicle has accurate lighting and shadows.
+\item Scene can be reoriented and resized by the user.
+\item User can toggle the display of previous poses.
+\item User can toggle the display of active landmarks in the SLAM problem.
+\item User can toggle between vehicle-centered and environment-centered views.
+\item User can toggle between perspective and orthogonal projections. 
+\end{itemize}
+
+\subsection*{Extra}
+\begin{itemize}
+\item User can switch mode to first-person cockpit view, allowing user to fly around with the virtual SLAM vehicle.
+\item While in first person mode the user can shoot at the simulated vehicle as in a dogfight.
+\item If the simulated vehicle is hit it will trail smoke and/or fire.
+\end{itemize}
+
+\end{document}
