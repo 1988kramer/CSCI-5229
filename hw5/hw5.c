@@ -1,7 +1,7 @@
 /*
  *  Lighting
  *
- *  Demonstrates basic lighting using a sphere and a cube.
+ *  Demonstrates basic lighting using a piper cub model.
  *
  *  Key bindings:
  *  l          Toggles lighting
@@ -195,7 +195,7 @@ void display()
    //  Display parameters
    glWindowPos2i(5,5);
    Print("Angle=%d,%d  Dim=%.1f FOV=%d Projection=%s Light=%s",
-     th,ph,dim,fov,mode?"Perpective":"Orthogonal",light?"On":"Off");
+     th,ph,dim,fov,mode?"Perspective":"Orthogonal",light?"On":"Off");
    if (light)
    {
       glWindowPos2i(5,45);

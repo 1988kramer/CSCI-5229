@@ -1,9 +1,10 @@
-ex13: Lighting
+hw5: Lighting
 
-Willem A. (Vlakkies) Schreuder
-CSCI4229/5229 Fall 2018
+Andrew Kramer
+CSCI5229 Fall 2018
 
-Demonstrates basic lighting using a sphere and a cube.
+Demonstrates basic lighting using the piper cub model
+from homeworks 3 and 4
 
 Key bindings
   l          Toggles lighting
@@ -26,3 +27,14 @@ Key bindings
   PgDn/PgUp  Zoom in and out
   0          Reset view angle
   ESC        Exit
+
+Attributions:
+ - This program borrows heavily from ex13.c. Supporting functions such as
+   special(), reshape(), Print(), Sin(), Cos(), and Project() were lifted
+   from ex13.c unchanged. The display function is slightly changed from 
+   ex13.c in that the sphere and cube were replaced with my piper cub 
+   model. Note also that CSCIx229.h has been changed slightly from the 
+   version included with ex13; it now includes the drawPiperCub() function 
+   from pipercub.c.
+
+Time spent on assignment: 5 hours

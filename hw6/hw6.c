@@ -604,9 +604,13 @@ static void drawVStab()
   double direction = -1.0;
 
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
-  glColor3f(1.0,1.0,0.0);
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
+  if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
+  else glColor3f(1.0,1.0,0.0);
   
   // draw sides of v-stab
+  double tex_scale = 4.0;
   for (int j = 0; j < 2; j++)
   {
     direction *= -1.0;
@@ -614,10 +618,12 @@ static void drawVStab()
     glNormal3f(0,0,direction);
     for (int i = 0; i < num_points; i++)
     {
+      glTexCoord2f(tex_scale*cross_sec_x[i],tex_scale*cross_sec_y[i]);
       glVertex3d(cross_sec_x[i], cross_sec_y[i], direction*offset);
     }
     glEnd();
   }
+  glDisable(GL_TEXTURE_2D);
 
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
@@ -644,23 +650,30 @@ static void drawHStab()
   double z_dir = -1.;
 
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
-  glColor3f(1.0,1.0,0.0);
   
+  
+  double tex_scale = 4.0;
   for (int k = 0; k < 2; k++)
   {
     z_dir *= -1.;
     for (int j = 0; j < 2; j++)
     {
       y_dir *= -1.;
+      glEnable(GL_TEXTURE_2D);
+      glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
+      if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
+      else glColor3f(1.0,1.0,0.0);
       glBegin(GL_POLYGON);
       glNormal3f(0.0, y_dir, 0.0);
       for (int i = 0; i < num_points; i++)
       {
+        glTexCoord2f(tex_scale*cross_sec_z[i],tex_scale*cross_sec_x[i]);
         glVertex3d(cross_sec_x[i], 
                    stab_height + (offset*y_dir), 
                    cross_sec_z[i]*z_dir);
       }
       glEnd();
+      glDisable(GL_TEXTURE_2D);
     }
     glBegin(GL_QUAD_STRIP);
     for (int i = 0; i < num_points; i++)

@@ -69,15 +69,19 @@ void crossProductNorm(double a_i, double a_j, double a_k,
  */
 static void drawFuselage()
 {
-	glBegin(GL_QUADS);
+  float white[] = {1,1,1,1};
+  float black[] = {0,0,0,1};
+  glMaterialf(GL_FRONT,GL_SHININESS,0.5);
+  glMaterialfv(GL_FRONT,GL_SPECULAR,white);
+  glMaterialfv(GL_FRONT,GL_EMISSION,black);
 
+  glBegin(GL_QUADS);
 	// aft tail boom  right side
   double tail_top = 0.17;
   double fwd_tail_top = 0.21;
   double tail = -0.85;
   double tail_boom_front = -0.25;
-
-  glColor3f(1,0,0);
+  glColor3f(1.0,1.0,0.0);
   crossProductNorm(tail, 0.1, 0.0,
                tail_boom_front, fwd_tail_top, 0.0875,
                tail, tail_top, 0.0);
@@ -87,7 +91,6 @@ static void drawFuselage()
   glVertex3d(tail_boom_front, fwd_tail_top, 0.0875);
 
   // aft tail boom left side
-  glColor3f(0,1,0);
   crossProductNorm(tail_boom_front, fwd_tail_top, -0.0875,
                tail, 0.1, 0.0,
                tail, tail_top, 0.0);
@@ -97,7 +100,6 @@ static void drawFuselage()
   glVertex3d(tail_boom_front, 0.025, -0.0875);
 
   // aft tail boom top
-  glColor3f(0,0,1);
   crossProductNorm(tail_boom_front, fwd_tail_top, 0.0875,
                tail_boom_front, fwd_tail_top, -0.875,
                tail, tail_top, 0.0);
@@ -107,7 +109,6 @@ static void drawFuselage()
   glVertex3d(tail_boom_front, fwd_tail_top, -0.0875);
 
   // aft tail boom bottom
-  glColor3d(0.5,0.5,0);
   crossProductNorm(tail_boom_front, 0.025, -0.0875,
                tail_boom_front, 0.025, 0.875,
                tail, 0.1, 0.0);
@@ -121,7 +122,6 @@ static void drawFuselage()
   double fwd_tail_front = -0.1;
 
   // fwd tail boom right side
-  glColor3f(0.5,1,0);
   crossProductNorm(tail_boom_front, 0.025, 0.0875,
                fwd_tail_front, door_top, 0.10,
                tail_boom_front, fwd_tail_top, 0.0875);
@@ -131,7 +131,6 @@ static void drawFuselage()
   glVertex3d(fwd_tail_front, door_top, 0.10);
 
   // fwd tail boom left side
-  glColor3f(0,0.5,1);
   crossProductNorm(fwd_tail_front, door_top, -0.10,
                tail_boom_front, 0.025, -0.0875,
                tail_boom_front, fwd_tail_top, -0.0875);
@@ -141,7 +140,6 @@ static void drawFuselage()
   glVertex3d(fwd_tail_front, door_bottom, -0.10);
 
   // fwd tail boom top
-  glColor3f(0,1,1);
   crossProductNorm(fwd_tail_front, door_top, 0.10,
                tail_boom_front, fwd_tail_top, -0.875,
                tail_boom_front, fwd_tail_top, 0.875);
@@ -151,7 +149,6 @@ static void drawFuselage()
   glVertex3d(tail_boom_front, fwd_tail_top, -0.0875);
 
   // fwd tail boom bottom
-  glColor3f(0,0.5,0.5);
   crossProductNorm(fwd_tail_front, door_bottom, -0.10,
                tail_boom_front, 0.025, 0.0875,
                tail_boom_front, 0.025, -0.0875);
@@ -161,7 +158,6 @@ static void drawFuselage()
   glVertex3d(fwd_tail_front, door_bottom, -0.10);
 
   // right door
-  glColor3f(0.5,0.5,0.5);
   crossProductNorm(fwd_tail_front, door_bottom, 0.10,
                0.25, door_top, 0.10,
                fwd_tail_front, door_top, 0.10);
@@ -171,7 +167,6 @@ static void drawFuselage()
   glVertex3d(0.25, door_top, 0.10);
 
   // left door
-  glColor3f(0.5,0,0.5);
   crossProductNorm(0.25, door_top, -0.10,
                fwd_tail_front, door_bottom, -0.10,
                fwd_tail_front, door_top, -0.10);
@@ -181,7 +176,6 @@ static void drawFuselage()
   glVertex3d(0.25, door_bottom, -0.10);
 
   // belly
-  glColor3f(0.5,0.25,0.25);
   crossProductNorm(0.25, door_bottom, -0.1,
                fwd_tail_front, door_bottom, 0.1,
                fwd_tail_front, door_bottom, -0.1);
@@ -197,18 +191,8 @@ static void drawFuselage()
   double cowling_side = 0.09;
   double firewall = 0.33;
 
-  // windscreen
-  glColor3f(0.1,0.5,0.1);
-  crossProductNorm(firewall, cowling_top, cowling_side,
-               0.25, door_top, -0.1,
-               0.25, door_top, 0.1);
-  glVertex3d(0.25, door_top, 0.1);
-  glVertex3d(0.25, door_top, -0.1);
-  glVertex3d(firewall, cowling_top, -1. * cowling_side);
-  glVertex3d(firewall, cowling_top, cowling_side);
 
   // fwd fuselage right
-  glColor3f(0.25,0.25,0.1);
   crossProductNorm(0.25, door_bottom, 0.1,
                firewall, cowling_top, cowling_side,
                0.25, door_top, 0.1);
@@ -218,7 +202,6 @@ static void drawFuselage()
   glVertex3d(firewall, cowling_top, cowling_side);
 
   // fwd fuselage left
-  glColor3f(0.5, 0.1, 0.1);
   crossProductNorm(firewall, cowling_top, -1. * cowling_side,
                0.25, door_bottom, -0.1,
                0.25, door_top, -0.1);
@@ -228,7 +211,6 @@ static void drawFuselage()
   glVertex3d(firewall, cowling_bottom, -1. * cowling_side);
 
   // fwd belly
-  glColor3f(0.2, 0.1, 0.2);
   crossProductNorm(0.25, door_bottom, -0.1,
                firewall, cowling_bottom, cowling_side,
                0.25, door_bottom, 0.1);
@@ -237,11 +219,65 @@ static void drawFuselage()
   glVertex3d(firewall, cowling_bottom, cowling_side);
   glVertex3d(0.25, door_bottom, 0.1);
 
+  // windscreen
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,1.0);
+  glColor3f(0.2,0.6,0.8);
+  crossProductNorm(firewall, cowling_top, cowling_side,
+               0.25, door_top, -0.1,
+               0.25, door_top, 0.1);
+  glVertex3d(0.25, door_top, 0.1);
+  glVertex3d(0.25, door_top, -0.1);
+  glVertex3d(firewall, cowling_top, -1. * cowling_side);
+  glVertex3d(firewall, cowling_top, cowling_side);
+
   glEnd();
+
+  // windows
+  glEnable(GL_POLYGON_OFFSET_FILL);
+  glPolygonOffset(-1.0f,-1.0f);
+
+  glBegin(GL_QUADS);
+
+  double offset = 0.01;
+  glNormal3f(0.,0.,1.);
+  glVertex3d(fwd_tail_front + 0.1, door_top - offset, 0.10);
+  glVertex3d(0.25 - offset, door_top - offset, 0.10);
+  glVertex3d(0.25 - offset, cowling_top - offset, 0.10);
+  glVertex3d(fwd_tail_front + 0.1, cowling_top - offset, 0.10);
+
+  glNormal3f(0.,0.,-1.);
+  glVertex3d(fwd_tail_front + 0.1, door_top - offset, -0.10);
+  glVertex3d(0.25 - offset/2, door_top - offset, -0.10);
+  glVertex3d(0.25 - offset/2, cowling_top - offset, -0.10);
+  glVertex3d(fwd_tail_front + 0.1, cowling_top - offset, -0.10);
+
+  crossProductNorm(0.25+offset/2, cowling_top - offset, 0.10,
+                   firewall-offset, cowling_top-offset, cowling_side,
+                   0.25+offset/2, door_top-0.015, 0.10);
+  glVertex3d(0.25+offset/2, door_top-0.015, 0.10);
+  glVertex3d(firewall-offset, cowling_top-offset, cowling_side);
+  glVertex3d(0.25+offset/2, cowling_top - offset, 0.10);
+  glVertex3d(0.25+offset/2, cowling_top - offset, 0.10);
+
+  crossProductNorm(firewall-offset, cowling_top-offset, cowling_side,
+                   0.25+offset/2, cowling_top - offset, 0.10,
+                   0.25+offset/2, door_top-0.015, 0.10);
+  glVertex3d(0.25+offset/2, door_top-0.015, -0.10);
+  glVertex3d(firewall-offset, cowling_top-offset, -cowling_side);
+  glVertex3d(0.25+offset/2, cowling_top - offset, -0.10);
+  glVertex3d(0.25+offset/2, cowling_top - offset, -0.10);
+
+  glEnd();
+
+  glDisable(GL_POLYGON_OFFSET_FILL);
+
+  
+
+  glMaterialf(GL_FRONT,GL_SHININESS,0.5);
+  glColor3f(1.0,1.0,0.0);
 
   // aft cowling
   double cowl_y_center = 0.5 * (cowling_top + cowling_bottom);
-  glColor3f(0.1,0.6,0.2);
   glBegin(GL_QUAD_STRIP);
   double radius = 0.06;
   double fwd_cowl = 0.45;
@@ -307,7 +343,6 @@ static void drawFuselage()
 
   // fwd cowling
   double nose = 0.49;
-  glColor3f(0.7,0.1,0.3);
   glBegin(GL_TRIANGLE_STRIP);
   
   for (double th = 0; th <= 360; th += 22.5)
@@ -334,7 +369,9 @@ static void drawWing()
 
   double wingtip = 1.2;
 
-  glColor3f(0.3,0.1,0.4);
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
+  glColor3f(1.0,1.0,0.0);
+
   for (int j = 0; j < 2; j++)
   {
     wingtip *= -1.0;
@@ -348,7 +385,6 @@ static void drawWing()
     glEnd();
   }
 
-  glColor3f(0.8,0.1,0.1);
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
@@ -412,7 +448,8 @@ static void drawVStab()
   double offset = 0.005;
   double direction = -1.0;
 
-  glColor3f(0.1,0.8,0.3);
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
+  glColor3f(1.0,1.0,0.0);
   
   // draw sides of v-stab
   for (int j = 0; j < 2; j++)
@@ -451,7 +488,8 @@ static void drawHStab()
   double y_dir = -1.;
   double z_dir = -1.;
 
-  glColor3f(0.7,0.3,0.5);
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
+  glColor3f(1.0,1.0,0.0);
   
   for (int k = 0; k < 2; k++)
   {
