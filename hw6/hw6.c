@@ -173,6 +173,34 @@ void crossProductNorm(double a_i, double a_j, double a_k,
   glNormal3f(i,j,k);
 }
 
+// draws a single rectangle using many polygons to approximate
+// accurate specular highlighting
+void drawWindow(int horiz_seg, int vert_seg, double start_x,
+                double start_y, double start_z, double end_x,
+                double end_y, double end_z)
+{
+  double y_increment = (end_y - start_y) / vert_seg;
+  double x_increment = (end_x - start_x) / vert_seg;
+  double z_increment = (end_z - start_z) / horiz_seg;
+  double cur_x = start_x;
+  double cur_y = start_y;
+  double cur_z = start_z;
+  for (int i = 0; i <= vert_seg; i++)
+  {
+    glBegin(GL_QUAD_STRIP);
+    for (int j = 0; j <= horiz_seg; j++)
+    {
+      glVertex3d(cur_x, cur_y, cur_z);
+      glVertex3d(cur_x+x_increment,cur_y+y_increment,cur_z);
+      cur_z += z_increment;
+    }
+    glEnd();
+    cur_x += x_increment;
+    cur_y += y_increment;
+    cur_z = start_z;
+  }
+}
+
 /*
  * Draws a piper cub's fuselage including nose cowling and engine 
  */
@@ -340,20 +368,13 @@ static void drawFuselage()
   glDisable(GL_TEXTURE_2D);
 
   // windscreen
-  glBegin(GL_QUADS);
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,1.0);
   glColor3f(0.2,0.6,0.8);
   crossProductNorm(firewall, cowling_top, cowling_side,
                0.25, door_top, -0.1,
                0.25, door_top, 0.1);
-  glVertex3d(0.25, door_top, 0.1);
-  glVertex3d(0.25, door_top, -0.1);
-  glVertex3d(firewall, cowling_top, -1. * cowling_side);
-  glVertex3d(firewall, cowling_top, cowling_side);
-
-  glEnd();
-  
-  
+  drawWindow(5,10,0.25,door_top,-1.0*cowling_side,
+             firewall,cowling_top,cowling_side);
 
   // windows
   glEnable(GL_POLYGON_OFFSET_FILL);
