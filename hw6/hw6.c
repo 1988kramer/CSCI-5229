@@ -53,9 +53,9 @@ int zh        =  90;  // Light azimuth
 float ylight  =   0;  // Elevation of light
 
 // texture values
-int texture[1];
+int texture[3];
 int ntex = 0;
-int num_textures = 1;
+int num_textures = 3;
 
 
 /*
@@ -216,8 +216,7 @@ static void drawFuselage()
   glEnable(GL_TEXTURE_2D);
   glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
   glColor3f(1.0,1.0,1.0);
-  if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
-  else glColor3f(1.0,1.0,0.0);
+  glBindTexture(GL_TEXTURE_2D, texture[ntex]);
 
   glBegin(GL_QUADS);
    // aft tail boom  right side
@@ -420,8 +419,7 @@ static void drawFuselage()
   glMaterialf(GL_FRONT,GL_SHININESS,0.5);
   glEnable(GL_TEXTURE_2D);
   glColor3f(1.0,1.0,1.0);
-  if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
-  else glColor3f(1.0,1.0,0.0);
+  glBindTexture(GL_TEXTURE_2D, texture[ntex]);
 
   // aft cowling
   double cowl_y_center = 0.5 * (cowling_top + cowling_bottom);
@@ -524,8 +522,7 @@ static void drawWing()
   glEnable(GL_TEXTURE_2D);
   glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
   glColor3f(1.0,1.0,1.0);
-  if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
-  else glColor3f(1.0,1.0,0.0);
+  glBindTexture(GL_TEXTURE_2D, texture[ntex]);
 
   // define wing cross section
   int num_points = 6;
@@ -629,8 +626,7 @@ static void drawVStab()
   glEnable(GL_TEXTURE_2D);
   glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
   glColor3f(1.0,1.0,1.0);
-  if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
-  else glColor3f(1.0,1.0,0.0);
+  glBindTexture(GL_TEXTURE_2D, texture[ntex]);
   
   // draw sides of v-stab
   double tex_scale = 4.0;
@@ -646,19 +642,23 @@ static void drawVStab()
     }
     glEnd();
   }
-  glDisable(GL_TEXTURE_2D);
 
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
     glNormal3f(Cos(norm_th[i]),Sin(norm_th[i]),0.0);
+    glTexCoord2f(tex_scale*cross_sec_x[i],0);
     glVertex3d(cross_sec_x[i], cross_sec_y[i], offset);
+    glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
     glVertex3d(cross_sec_x[i], cross_sec_y[i], -1.0*offset);
   }
   glNormal3f(Cos(norm_th[num_points-1]),Sin(norm_th[num_points-1]),0.0);
+  glTexCoord2f(tex_scale*cross_sec_x[0],0);
   glVertex3d(cross_sec_x[0], cross_sec_y[0], offset);
+  glTexCoord2f(tex_scale*cross_sec_x[0], tex_scale*2*offset);
   glVertex3d(cross_sec_x[0], cross_sec_y[0], -1.0*offset);
   glEnd();
+  glDisable(GL_TEXTURE_2D);
 }
 
 static void drawHStab()
@@ -685,8 +685,8 @@ static void drawHStab()
       glEnable(GL_TEXTURE_2D);
       glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
       glColor3f(1.0,1.0,1.0);
-      if(ntex) glBindTexture(GL_TEXTURE_2D, texture[0]);
-      else glColor3f(1.0,1.0,0.0);
+      glBindTexture(GL_TEXTURE_2D, texture[ntex]);
+      
       glBegin(GL_POLYGON);
       glNormal3f(0.0, y_dir, 0.0);
       for (int i = 0; i < num_points; i++)
@@ -699,19 +699,26 @@ static void drawHStab()
       glEnd();
       glDisable(GL_TEXTURE_2D);
     }
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,mode?GL_MODULATE:GL_REPLACE);
+    glColor3f(1.0,1.0,1.0);
+    glBindTexture(GL_TEXTURE_2D, texture[ntex]);
     glBegin(GL_QUAD_STRIP);
     for (int i = 0; i < num_points; i++)
     {
       glNormal3f(Sin(norm_th[i]*z_dir),0.0,
                  Cos(norm_th[i]*z_dir));
+      glTexCoord2f(tex_scale*cross_sec_x[i], 0);
       glVertex3d(cross_sec_x[i],
                  stab_height + offset, 
                  cross_sec_z[i]*z_dir);
+      glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
       glVertex3d(cross_sec_x[i],
                  stab_height - offset,
                  cross_sec_z[i]*z_dir);
     }
     glEnd();
+    glDisable(GL_TEXTURE_2D);
   }
 }
 
@@ -993,7 +1000,7 @@ void key(unsigned char ch,int x,int y)
   else if (ch=='N' && shininess<7)
     shininess += 1;
   else if (ch=='t' || ch=='T')
-    ntex = 1-ntex;
+    ntex = (ntex+1)%num_textures;
   //  Translate shininess power to value (-1 => 0)
   shiny = shininess<0 ? 0 : pow(2.0,shininess);
   //  Reproject
@@ -1035,7 +1042,9 @@ int main(int argc,char* argv[])
    glutKeyboardFunc(key);
    glutIdleFunc(idle);
    // load textures
-   texture[0] = LoadTexBMP("bricks.bmp");
+   texture[0] = LoadTexBMP("yellow_fabric.bmp");
+   texture[1] = LoadTexBMP("metal.bmp");
+   texture[2] = LoadTexBMP("bricks.bmp");
    //  Pass control to GLUT so it can interact with the user
    ErrCheck("init");
    glutMainLoop();
