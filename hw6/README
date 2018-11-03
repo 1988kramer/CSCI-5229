@@ -1,10 +1,13 @@
-hw5: Lighting
+hw6: Textures
 
 Andrew Kramer
 CSCI5229 Fall 2018
 
-Demonstrates basic lighting using the piper cub model
-from homeworks 3 and 4
+Demonstrates the use of textures using the piper cub model
+from homeworks 3 through 5. The user can rotate the model,
+zoom in and out, and change the lighting properties. The user
+can also select the texture used, making the airplane appear
+to be covered with fabric, rivited aluminum, or bricks.
 
 Key bindings
   l          Toggles lighting
@@ -13,6 +16,7 @@ Key bindings
   s/S        Decrease/increase specular light
   e/E        Decrease/increase emitted light
   n/N        Decrease/increase shininess
+  t/T        Change texture
   F1         Toggle smooth/flat shading
   F2         Toggle local viewer mode
   F3         Toggle light distance (1/5)
@@ -29,12 +33,10 @@ Key bindings
   ESC        Exit
 
 Attributions:
- - This program borrows heavily from ex13.c. Supporting functions such as
+ - This program borrows heavily from ex15.c. Supporting functions such as
    special(), reshape(), Print(), Sin(), Cos(), and Project() were lifted
-   from ex13.c unchanged. The display function is slightly changed from 
+   from ex15.c unchanged. The display function is slightly changed from 
    ex13.c in that the sphere and cube were replaced with my piper cub 
-   model. Note also that CSCIx229.h has been changed slightly from the 
-   version included with ex13; it now includes the drawPiperCub() function 
-   from pipercub.c.
+   model.
 
 Time spent on assignment: 5 hours
