@@ -169,7 +169,8 @@ void SlamViz::initializeGL()
    texture[0] = new QOpenGLTexture(QImage(QString("yellow_fabric.bmp")));
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
-   glEnable(GL_DEPTH_TEST);
+   sky[0] = new QOpenGLTexture(QImage(QString("sky0.bmp")));
+   sky[1] = new QOpenGLTexture(QImage(QString("sky1.bmp")));
 }
 
 void SlamViz::timerEvent(void)
@@ -199,6 +200,8 @@ void SlamViz::paintGL()
    const double len=2.0;
    //  Clear screen and Z-buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_CULL_FACE);
 
    //  Reset transformations
    glLoadIdentity();
@@ -215,7 +218,7 @@ void SlamViz::paintGL()
       double dx = x*dim*Sin(th)*Cos(ph);
       double dy = y*dim*Sin(ph);
       double dz = z*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex-dx,Ey-dy,Ez-dz, -dx,-dy,-dz , 0,Cos(ph),0);
+      gluLookAt(Ex,Ey,Ez, 0,0,0 , 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
    else
@@ -224,6 +227,8 @@ void SlamViz::paintGL()
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
    }
+
+   Sky(1.5*dim);
 
    //  Flat or smooth shading
    glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
@@ -353,10 +358,56 @@ void SlamViz::project()
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    if (asp>1)
-      glOrtho(-dim*asp, +dim*asp, -dim, +dim, -3*dim, +3*dim);
+      glOrtho(-dim*asp, +dim*asp, -dim, +dim, -8*dim, + 8*dim);
    else
-      glOrtho(-dim, +dim, -dim/asp, +dim/asp, -3*dim, +3*dim);
+      glOrtho(-dim, +dim, -dim/asp, +dim/asp, -8*dim, + 8*dim);
 
    //  Back to model view
    glMatrixMode(GL_MODELVIEW);
+}
+
+void SlamViz::Sky(double D)
+{
+   glColor3f(1,1,1);
+   glEnable(GL_TEXTURE_2D);
+
+   //  Sides
+   sky[0]->bind();
+   glBegin(GL_QUADS);
+   glTexCoord2f(0.00,0); glVertex3f(-D,-D,-D);
+   glTexCoord2f(0.25,0); glVertex3f(+D,-D,-D);
+   glTexCoord2f(0.25,-1); glVertex3f(+D,+D,-D);
+   glTexCoord2f(0.00,-1); glVertex3f(-D,+D,-D);
+
+   glTexCoord2f(0.25,0); glVertex3f(+D,-D,-D);
+   glTexCoord2f(0.50,0); glVertex3f(+D,-D,+D);
+   glTexCoord2f(0.50,-1); glVertex3f(+D,+D,+D);
+   glTexCoord2f(0.25,-1); glVertex3f(+D,+D,-D);
+
+   glTexCoord2f(0.50,0); glVertex3f(+D,-D,+D);
+   glTexCoord2f(0.75,0); glVertex3f(-D,-D,+D);
+   glTexCoord2f(0.75,-1); glVertex3f(-D,+D,+D);
+   glTexCoord2f(0.50,-1); glVertex3f(+D,+D,+D);
+
+   glTexCoord2f(0.75,0); glVertex3f(-D,-D,+D);
+   glTexCoord2f(1.00,0); glVertex3f(-D,-D,-D);
+   glTexCoord2f(1.00,-1); glVertex3f(-D,+D,-D);
+   glTexCoord2f(0.75,-1); glVertex3f(-D,+D,+D);
+   glEnd();
+
+   //  Top and bottom
+   sky[1]->bind();
+   glBegin(GL_QUADS);
+   glTexCoord2f(0.0,0); glVertex3f(+D,+D,-D);
+   glTexCoord2f(0.5,0); glVertex3f(+D,+D,+D);
+   glTexCoord2f(0.5,-1); glVertex3f(-D,+D,+D);
+   glTexCoord2f(0.0,-1); glVertex3f(-D,+D,-D);
+
+   glTexCoord2f(1.0,-1); glVertex3f(-D,-D,+D);
+   glTexCoord2f(0.5,-1); glVertex3f(+D,-D,+D);
+   glTexCoord2f(0.5,0); glVertex3f(+D,-D,-D);
+   glTexCoord2f(1.0,0); glVertex3f(-D,-D,-D);
+   glEnd();
+
+   glDisable(GL_TEXTURE_2D);
 }

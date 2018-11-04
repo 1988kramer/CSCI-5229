@@ -141,8 +141,9 @@ void airplane::drawWindow(int horiz_seg, int vert_seg, double start_x,
     glBegin(GL_QUAD_STRIP);
     for (int j = 0; j <= horiz_seg; j++)
     {
-      glVertex3d(cur_x, cur_y, cur_z);
+      
       glVertex3d(cur_x+x_increment,cur_y+y_increment,cur_z);
+      glVertex3d(cur_x, cur_y, cur_z);
       cur_z += z_increment;
     }
     glEnd();
@@ -245,10 +246,12 @@ void airplane::drawFuselage()
   crossProductNorm(fwd_tail_front, door_bottom, -0.10,
                tail_boom_front, 0.025, 0.0875,
                tail_boom_front, 0.025, -0.0875);
-  glTexCoord2f(0,0.9); glVertex3d(tail_boom_front, 0.025, -0.0875);
+  
   glTexCoord2f(0,0.1); glVertex3d(tail_boom_front, 0.025, 0.0875);
-  glTexCoord2f(0.5,0); glVertex3d(fwd_tail_front, door_bottom, 0.10);
+  glTexCoord2f(0,0.9); glVertex3d(tail_boom_front, 0.025, -0.0875);
   glTexCoord2f(0.5,1); glVertex3d(fwd_tail_front, door_bottom, -0.10);
+  glTexCoord2f(0.5,0); glVertex3d(fwd_tail_front, door_bottom, 0.10);
+  
 
   // right door
   crossProductNorm(fwd_tail_front, door_bottom, 0.10,
@@ -332,9 +335,11 @@ void airplane::drawFuselage()
   double offset = 0.01;
   glNormal3f(0.,0.,1.);
   glVertex3d(fwd_tail_front + 0.1, door_top - offset, 0.10);
-  glVertex3d(0.25 - offset, door_top - offset, 0.10);
-  glVertex3d(0.25 - offset, cowling_top - offset, 0.10);
   glVertex3d(fwd_tail_front + 0.1, cowling_top - offset, 0.10);
+  glVertex3d(0.25 - offset, cowling_top - offset, 0.10);
+  glVertex3d(0.25 - offset, door_top - offset, 0.10);
+  
+  
 
   glNormal3f(0.,0.,-1.);
   glVertex3d(fwd_tail_front + 0.1, door_top - offset, -0.10);
@@ -346,9 +351,10 @@ void airplane::drawFuselage()
                    firewall-offset, cowling_top-offset, cowling_side,
                    0.25+offset/2, door_top-0.015, 0.10);
   glVertex3d(0.25+offset/2, door_top-0.015, 0.10);
+  glVertex3d(0.25+offset/2, cowling_top - offset, 0.10);
+  glVertex3d(0.25+offset/2, cowling_top - offset, 0.10);
   glVertex3d(firewall-offset, cowling_top-offset, cowling_side);
-  glVertex3d(0.25+offset/2, cowling_top - offset, 0.10);
-  glVertex3d(0.25+offset/2, cowling_top - offset, 0.10);
+  
 
   crossProductNorm(firewall-offset, cowling_top-offset, cowling_side,
                    0.25+offset/2, cowling_top - offset, 0.10,
@@ -383,12 +389,15 @@ void airplane::drawFuselage()
     double px, py, pz;
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, cowling_top, px, py, th);
-    glTexCoord2f(0,th/90.); 
-    glVertex3d(firewall, cowling_top, horiz_position);
 
     glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
+
+    glTexCoord2f(0,th/90.); 
+    glVertex3d(firewall, cowling_top, horiz_position);
+
+    
     horiz_position += horiz_increment;
   }
 
@@ -400,12 +409,13 @@ void airplane::drawFuselage()
     double px, py, pz;
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, vert_position, px, py, th);
-    glTexCoord2f(0,th/90.); 
-    glVertex3d(firewall, vert_position, cowling_side);
 
     glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
+
+    glTexCoord2f(0,th/90.); 
+    glVertex3d(firewall, vert_position, cowling_side);
     
     vert_position -= vert_increment;
   }
@@ -415,13 +425,14 @@ void airplane::drawFuselage()
     double px, py, pz;
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, cowling_bottom, px, py, th);
-    glTexCoord2f(0,th/90.); 
-    glVertex3d(firewall, cowling_bottom, horiz_position);
 
     glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
-    
+
+    glTexCoord2f(0,th/90.); 
+    glVertex3d(firewall, cowling_bottom, horiz_position);
+
     horiz_position -= horiz_increment;
   }
   vert_position += vert_increment;
@@ -430,13 +441,14 @@ void airplane::drawFuselage()
     double px, py, pz;
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, vert_position, px, py, th);
-    glTexCoord2f(0,th/90.); 
-    glVertex3d(firewall, vert_position, -1 * cowling_side);
 
     glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
-    
+
+    glTexCoord2f(0,th/90.); 
+    glVertex3d(firewall, vert_position, -1 * cowling_side);
+
     vert_position += vert_increment;
   }
 
@@ -450,13 +462,14 @@ void airplane::drawFuselage()
   {
     double px, py, pz;
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
-    glNormal3f(Sin(fwd_cowl_angle), Cos(th), Sin(th));
-    glTexCoord2f(0.35*Cos(th)+0.5,0.35*Sin(th)+0.5); 
-    glVertex3d(px,py,pz);
 
     glNormal3f(1,0,0);
     glTexCoord2f(0.5,0.5); 
     glVertex3d(nose, cowl_y_center, 0.0);
+
+    glNormal3f(Sin(fwd_cowl_angle), Cos(th), Sin(th));
+    glTexCoord2f(0.35*Cos(th)+0.5,0.35*Sin(th)+0.5); 
+    glVertex3d(px,py,pz);
   }
 
   glEnd();
@@ -477,24 +490,31 @@ void airplane::drawWing()
   double cross_sec_x[] = {0.25, 0.26, 0.25, 0.23, 0.20, -0.1};
   double cross_sec_y[] = {0.25, 0.26, 0.27, 0.28, 0.29, 0.25};
 
-  double wingtip = 1.2;
+  double wingtip = -1.2;
 
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
 
   double tex_scale = 3.0;
-  for (int j = 0; j < 2; j++)
-  {
-    wingtip *= -1.0;
 
-    glBegin(GL_POLYGON);
-    glNormal3f(0,0,wingtip);
-    for (int i = 0; i < num_points; i++)
-    {
-      glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*cross_sec_y[i]);
-      glVertex3d(cross_sec_x[i], cross_sec_y[i], wingtip);
-    }
-    glEnd();
+  glBegin(GL_POLYGON);
+  glNormal3f(0,0,wingtip);
+  for (int i = num_points - 1; i >= 0; i--)
+  {
+    glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*cross_sec_y[i]);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], wingtip);
   }
+  glEnd();
+  
+  wingtip *= -1.0;
+
+  glBegin(GL_POLYGON);
+  glNormal3f(0,0,wingtip);
+  for (int i = 0; i < num_points; i++)
+  {
+    glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*cross_sec_y[i]);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], wingtip);
+  }
+  glEnd();
 
   glBegin(GL_QUAD_STRIP);
   double tex_pos = 0.0;
@@ -549,14 +569,15 @@ void airplane::drawWing()
   glEnd();
   glBegin(GL_QUADS);
   glNormal3f(0,-1,0);
-  glTexCoord2f(-3,0);
-  glVertex3d(cross_sec_x[num_points-1],cross_sec_y[num_points-1],-1.0*wingtip);
-  glTexCoord2f(3,0);
-  glVertex3d(cross_sec_x[num_points-1],cross_sec_y[num_points-1],wingtip);
-  glTexCoord2f(3,1);
-  glVertex3d(cross_sec_x[0], cross_sec_y[0], wingtip);
   glTexCoord2f(-3,1);
   glVertex3d(cross_sec_x[0], cross_sec_y[0], -1.0*wingtip);
+  glTexCoord2f(3,1);
+  glVertex3d(cross_sec_x[0], cross_sec_y[0], wingtip);
+  glTexCoord2f(3,0);
+  glVertex3d(cross_sec_x[num_points-1],cross_sec_y[num_points-1],wingtip);
+  glTexCoord2f(-3,0);
+  glVertex3d(cross_sec_x[num_points-1],cross_sec_y[num_points-1],-1.0*wingtip);
+  
   glEnd();
   glDisable(GL_TEXTURE_2D);
 }
@@ -568,7 +589,7 @@ void airplane::drawVStab()
   double cross_sec_x[] = {-0.65, -0.85, -0.85, -0.95, -0.90, -0.85, -0.80};
   double cross_sec_y[] = {0.17, 0.17, 0.11, 0.14, 0.35, 0.38, 0.35};
   double offset = 0.005;
-  double direction = -1.0;
+  double direction = 1.0;
 
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
   glEnable(GL_TEXTURE_2D);
@@ -578,33 +599,40 @@ void airplane::drawVStab()
   
   // draw sides of v-stab
   double tex_scale = 4.0;
-  for (int j = 0; j < 2; j++)
+
+  glBegin(GL_POLYGON);
+  glNormal3f(0,0,direction);
+  for (int i = num_points - 1; i >= 0; i--)
   {
-    direction *= -1.0;
-    glBegin(GL_POLYGON);
-    glNormal3f(0,0,direction);
-    for (int i = 0; i < num_points; i++)
-    {
-      glTexCoord2f(tex_scale*cross_sec_x[i],tex_scale*cross_sec_y[i]);
-      glVertex3d(cross_sec_x[i], cross_sec_y[i], direction*offset);
-    }
-    glEnd();
+    glTexCoord2f(tex_scale*cross_sec_x[i],tex_scale*cross_sec_y[i]);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], direction*offset);
   }
+  glEnd();
+
+  direction *= -1.0;
+  glBegin(GL_POLYGON);
+  glNormal3f(0,0,direction);
+  for (int i = 0; i < num_points; i++)
+  {
+    glTexCoord2f(tex_scale*cross_sec_x[i],tex_scale*cross_sec_y[i]);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], direction*offset);
+  }
+  glEnd();
 
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
     glNormal3f(Cos(norm_th[i]),Sin(norm_th[i]),0.0);
-    glTexCoord2f(tex_scale*cross_sec_x[i],0);
-    glVertex3d(cross_sec_x[i], cross_sec_y[i], offset);
     glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
     glVertex3d(cross_sec_x[i], cross_sec_y[i], -1.0*offset);
+    glTexCoord2f(tex_scale*cross_sec_x[i],0);
+    glVertex3d(cross_sec_x[i], cross_sec_y[i], offset);
   }
   glNormal3f(Cos(norm_th[num_points-1]),Sin(norm_th[num_points-1]),0.0);
-  glTexCoord2f(tex_scale*cross_sec_x[0],0);
-  glVertex3d(cross_sec_x[0], cross_sec_y[0], offset);
   glTexCoord2f(tex_scale*cross_sec_x[0], tex_scale*2*offset);
   glVertex3d(cross_sec_x[0], cross_sec_y[0], -1.0*offset);
+  glTexCoord2f(tex_scale*cross_sec_x[0],0);
+  glVertex3d(cross_sec_x[0], cross_sec_y[0], offset);
   glEnd();
   glDisable(GL_TEXTURE_2D);
 }
@@ -617,55 +645,109 @@ void airplane::drawHStab()
   double cross_sec_x[] = {-0.65, -0.66, -0.71, -0.88, -0.95, -0.95, -0.87};
   double cross_sec_z[] = {0.0, 0.07, 0.15, 0.30, 0.25, 0.08, 0.0};
   double offset = .005;
-  double y_dir = -1.;
+  double y_dir = 1.;
   double z_dir = -1.;
 
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
   
   
   double tex_scale = 4.0;
-  for (int k = 0; k < 2; k++)
+
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  glColor3f(1.0,1.0,1.0);
+  texture[ntex]->bind();
+     
+  glBegin(GL_POLYGON);
+  glNormal3f(0.0, y_dir, 0.0);
+  for (int i = 0; i < num_points; i++)
   {
-    z_dir *= -1.;
-    for (int j = 0; j < 2; j++)
-    {
-      y_dir *= -1.;
-      glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-      glColor3f(1.0,1.0,1.0);
-      texture[ntex]->bind();
-      
-      glBegin(GL_POLYGON);
-      glNormal3f(0.0, y_dir, 0.0);
-      for (int i = 0; i < num_points; i++)
-      {
-        glTexCoord2f(tex_scale*cross_sec_z[i],tex_scale*cross_sec_x[i]);
-        glVertex3d(cross_sec_x[i], 
-                   stab_height + (offset*y_dir), 
-                   cross_sec_z[i]*z_dir);
-      }
-      glEnd();
-      glDisable(GL_TEXTURE_2D);
-    }
-    glEnable(GL_TEXTURE_2D);
-    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-    glColor3f(1.0,1.0,1.0);
-    texture[ntex]->bind();
-    glBegin(GL_QUAD_STRIP);
-    for (int i = 0; i < num_points; i++)
-    {
-      glNormal3f(Sin(norm_th[i]*z_dir),0.0,
-                 Cos(norm_th[i]*z_dir));
-      glTexCoord2f(tex_scale*cross_sec_x[i], 0);
-      glVertex3d(cross_sec_x[i],
-                 stab_height + offset, 
-                 cross_sec_z[i]*z_dir);
-      glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
-      glVertex3d(cross_sec_x[i],
-                 stab_height - offset,
-                 cross_sec_z[i]*z_dir);
-    }
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
+    glTexCoord2f(tex_scale*cross_sec_z[i],tex_scale*cross_sec_x[i]);
+    glVertex3d(cross_sec_x[i], 
+               stab_height + (offset*y_dir), 
+               cross_sec_z[i]*z_dir);
   }
+  glEnd();
+
+  y_dir *= -1.;
+
+  glBegin(GL_POLYGON);
+  glNormal3f(0.0, y_dir, 0.0);
+  for (int i = num_points-1; i >= 0; i--)
+  {
+    glTexCoord2f(tex_scale*cross_sec_z[i],tex_scale*cross_sec_x[i]);
+    glVertex3d(cross_sec_x[i], 
+               stab_height + (offset*y_dir), 
+               cross_sec_z[i]*z_dir);
+  }
+  glEnd();
+
+  glDisable(GL_TEXTURE_2D);
+
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  glColor3f(1.0,1.0,1.0);
+  texture[ntex]->bind();
+  glBegin(GL_QUAD_STRIP);
+  for (int i = 0; i < num_points; i++)
+  {
+    glNormal3f(Sin(norm_th[i]*z_dir),0.0,
+               Cos(norm_th[i]*z_dir));
+    glTexCoord2f(tex_scale*cross_sec_x[i], 0);
+    glVertex3d(cross_sec_x[i],
+               stab_height + offset, 
+               cross_sec_z[i]*z_dir);
+    glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
+    glVertex3d(cross_sec_x[i],
+               stab_height - offset,
+               cross_sec_z[i]*z_dir);
+  }
+  glEnd();
+  
+  z_dir *= -1.;
+
+  glBegin(GL_POLYGON);
+  glNormal3f(0.0, y_dir, 0.0);
+  for (int i = 0; i < num_points; i++)
+  {
+    glTexCoord2f(tex_scale*cross_sec_z[i],tex_scale*cross_sec_x[i]);
+    glVertex3d(cross_sec_x[i], 
+               stab_height + (offset*y_dir), 
+               cross_sec_z[i]*z_dir);
+  }
+  glEnd();
+
+  y_dir *= -1.;
+
+  glBegin(GL_POLYGON);
+  glNormal3f(0.0, y_dir, 0.0);
+  for (int i = num_points-1; i >= 0; i--)
+  {
+    glTexCoord2f(tex_scale*cross_sec_z[i],tex_scale*cross_sec_x[i]);
+    glVertex3d(cross_sec_x[i], 
+               stab_height + (offset*y_dir), 
+               cross_sec_z[i]*z_dir);
+  }
+  glEnd();
+
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  glColor3f(1.0,1.0,1.0);
+  texture[ntex]->bind();
+  glBegin(GL_QUAD_STRIP);
+  for (int i = 0; i < num_points; i++)
+  {
+    glNormal3f(Sin(norm_th[i]*z_dir),0.0,
+               Cos(norm_th[i]*z_dir));
+    glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
+    glVertex3d(cross_sec_x[i],
+               stab_height - offset,
+               cross_sec_z[i]*z_dir);
+    glTexCoord2f(tex_scale*cross_sec_x[i], 0);
+    glVertex3d(cross_sec_x[i],
+               stab_height + offset, 
+               cross_sec_z[i]*z_dir);
+  }
+  glEnd();
+  glDisable(GL_TEXTURE_2D);
 }

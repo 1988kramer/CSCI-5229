@@ -36,6 +36,7 @@ private:
 			local, emission, shiny, inc;
 	airplane* plane;
 	QOpenGLTexture *texture[3];
+	QOpenGLTexture *sky[2];
 	QTimer* timer;
 
 public:
@@ -66,6 +67,7 @@ protected:
 private:
 	void ball(double x,double y,double z,double r);
 	void Vertex(double th, double ph);
+	void Sky(double D);
 	void project();
 };
 
