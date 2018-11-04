@@ -9,11 +9,11 @@
 //  Constructor
 //
 SlamViz::SlamViz(QWidget* parent)
-    : QOpenGLWidget(parent)
+    : QGLWidget(parent)
 {
    th = ph = 30;      //  Set intial display angles
    asp = 1;           //  Aspect ratio
-   dim = 50;          //  World dimension
+   dim = 20;          //  World dimension
    x0 = y0 = z0 = 1;  //  Starting location
    mouse = 0;         //  Mouse movement
    smooth    =   1;  // Smooth/Flat shading
@@ -28,6 +28,10 @@ SlamViz::SlamViz(QWidget* parent)
    shiny   =   1;  // Shininess (value)
    inc       =  10;  // Ball increment
    plane = new airplane(texture,3);
+   axes = light = mode = true;
+   timer = new QTimer(this);
+   connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+   timer->start(16);
 }
 
 /********************************************************************/
@@ -61,6 +65,12 @@ void SlamViz::toggleDisplay(void)
    update();
 }
 
+void SlamViz::switchTexture(void)
+{
+   plane->changeTexture();
+   update();
+}
+
 //
 //  Reset view angle
 //
@@ -76,7 +86,7 @@ void SlamViz::reset(void)
 void SlamViz::setDIM(double DIM)
 {
    dim = DIM;    //  Set parameter
-   Project(55, dim, asp);
+   project();
    update();     //  Request redisplay
 }
 
@@ -124,7 +134,7 @@ void SlamViz::wheelEvent(QWheelEvent* e)
    if (e->delta()<0)
       setDIM(dim+1);
    //  Zoom in
-   else if (dim>2)
+   else if (dim>1)
       setDIM(dim-1);
    //  Signal to change dimension spinbox
    emit dimen(dim);
@@ -140,13 +150,18 @@ void SlamViz::wheelEvent(QWheelEvent* e)
 void SlamViz::initializeGL()
 {
 // glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
-   std::cout << "initializing" << std::endl;
    setMouseTracking(true);  //  Ask for mouse events
-   initializeOpenGLFunctions();
+   //initializeOpenGLFunctions();
    texture[0] = new QOpenGLTexture(QImage(QString("yellow_fabric.bmp")));
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
-   std::cout << "initialized" << std::endl;
+   glEnable(GL_DEPTH_TEST);
+}
+
+void SlamViz::timerEvent(void)
+{
+   zh = (zh + 1) % 360;
+   update();
 }
 
 //
@@ -159,7 +174,7 @@ void SlamViz::resizeGL(int width, int height)
    //  Viewport is whole screen
    glViewport(0,0,width,height);
    //  Set projection
-   Project(55, dim, asp);
+   project();
 }
 
 //
@@ -253,9 +268,9 @@ void SlamViz::paintGL()
       //Print("Y");
       //glRasterPos3d(0.0,0.0,len);
       //Print("Z");
-      //renderText(len, 0.0, 0.0, QString("X"));
-      //renderText(0.0, len, 0.0, QString("Y"));
-      //renderText(0.0, 0.0, len, QString("Z"));
+      renderText(len, 0.0, 0.0, QString("X"));
+      renderText(0.0, len, 0.0, QString("Y"));
+      renderText(0.0, 0.0, len, QString("Z"));
    }
 
    //
@@ -309,4 +324,21 @@ void SlamViz::ball(double x,double y,double z,double r)
    }
    //  Undo transofrmations
    glPopMatrix();
+}
+
+//
+//  Set projection
+//
+void SlamViz::project()
+{
+   //  Orthogonal projection to dim
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   if (asp>1)
+      glOrtho(-dim*asp, +dim*asp, -dim, +dim, -3*dim, +3*dim);
+   else
+      glOrtho(-dim, +dim, -dim/asp, +dim/asp, -3*dim, +3*dim);
+
+   //  Back to model view
+   glMatrixMode(GL_MODELVIEW);
 }

@@ -32,12 +32,14 @@ Viewer::Viewer(QWidget* parent)
    QPushButton* display = new QPushButton("Display");
    QPushButton* lighting = new QPushButton("Lighting");
    QPushButton* axes = new QPushButton("Axes");
+   QPushButton* texture = new QPushButton("Texture");
 
    //  Connect valueChanged() signals to Lorenz slots
    connect(reset, SIGNAL(clicked(void)), slam_viz, SLOT(reset(void)));
    connect(display, SIGNAL(clicked(void)), slam_viz, SLOT(toggleDisplay(void)));
    connect(lighting, SIGNAL(clicked(void)), slam_viz, SLOT(toggleLight(void)));
    connect(axes, SIGNAL(clicked(void)), slam_viz, SLOT(toggleAxes(void)));
+   connect(texture, SIGNAL(clicked(void)), slam_viz, SLOT(switchTexture(void)));
    //  Connect lorenz signals to display widgets
    // connect(slam_viz , SIGNAL(dimen(double))   , dim    , SLOT(setValue(double)));
 
@@ -61,6 +63,7 @@ Viewer::Viewer(QWidget* parent)
    dsplay->addWidget(display,2,0);
    dsplay->addWidget(lighting,3,0);
    dsplay->addWidget(axes,4,0);
+   dsplay->addWidget(texture,5,0);
    dspbox->setLayout(dsplay);
    layout->addWidget(dspbox,2,1);
 

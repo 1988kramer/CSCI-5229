@@ -5,7 +5,7 @@
 #ifndef SLAMVIZ_H
 #define SLAMVIZ_H
 
-#include <QOpenGLWidget>
+#include <QGLWidget>
 #include <QString>
 #include <QOpenGLTexture>
 #include "airplane.h"
@@ -15,7 +15,7 @@
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture);
 
-class SlamViz : public QOpenGLWidget, protected QOpenGLFunctions
+class SlamViz : public QGLWidget
 {
 Q_OBJECT
 private:
@@ -35,6 +35,7 @@ private:
 			local, emission, shiny, inc;
 	airplane* plane;
 	QOpenGLTexture *texture[3];
+	QTimer* timer;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -46,6 +47,8 @@ public slots:
 	void toggleLight(void);
 	void toggleDisplay(void);
   void setDIM(double DIM);    //  Slot to set dim
+  void switchTexture(void);
+  void timerEvent(void);
 
 signals:
 	void angles(QString text); // Signal for display angles
@@ -62,6 +65,7 @@ protected:
 private:
 	void ball(double x,double y,double z,double r);
 	void Vertex(double th, double ph);
+	void project();
 };
 
 #endif
