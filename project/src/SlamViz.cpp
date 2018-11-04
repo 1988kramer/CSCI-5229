@@ -15,7 +15,8 @@ SlamViz::SlamViz(QWidget* parent)
    asp = 1;           //  Aspect ratio
    dim = 20;          //  World dimension
    x0 = y0 = z0 = 1;  //  Starting location
-   mouse = 0;         //  Mouse movement
+   x = y = z = 0;
+   l_mouse = r_mouse = false;         //  Mouse movement
    smooth    =   1;  // Smooth/Flat shading
    ambient   =  30;  // Ambient intensity (%)
    diffuse   = 100;  // Diffuse intensity (%)
@@ -77,6 +78,7 @@ void SlamViz::switchTexture(void)
 void SlamViz::reset(void)
 {
    th = ph = 0;  //  Set parameter
+   x = y = z = 0;
    update();     //  Request redisplay
 }
 
@@ -98,16 +100,22 @@ void SlamViz::setDIM(double DIM)
 //
 void SlamViz::mousePressEvent(QMouseEvent* e)
 {
-   mouse = true;
+   if (e->button() == Qt::RightButton)
+      r_mouse = true;
+   if (e->button() == Qt::LeftButton)
+      l_mouse = true;
    pos = e->pos();  //  Remember mouse location
 }
 
 //
 //  Mouse released
 //
-void SlamViz::mouseReleaseEvent(QMouseEvent*)
+void SlamViz::mouseReleaseEvent(QMouseEvent* e)
 {
-    mouse = false;
+   if (e->button() == Qt::RightButton)
+      r_mouse = false;
+   else if (e->button() == Qt::LeftButton)
+      l_mouse = false;
 }
 
 //
@@ -115,14 +123,21 @@ void SlamViz::mouseReleaseEvent(QMouseEvent*)
 //
 void SlamViz::mouseMoveEvent(QMouseEvent* e)
 {
-   if (mouse)
+   QPoint d = e->pos()-pos;  //  Change in mouse location
+   // rotate field of view if right mouse
+   if (r_mouse)
    {
-      QPoint d = e->pos()-pos;  //  Change in mouse location
       th = (th+d.x())%360;      //  Translate x movement to azimuth
       ph = (ph+d.y())%360;      //  Translate y movement to elevation
-      pos = e->pos();           //  Remember new location
-      update();                 //  Request redisplay
    }
+   // translate field of view if left mouse
+   if (l_mouse)
+   {
+      x += d.x() / 10.0;
+      y -= d.y() / 10.0;
+   }
+   pos = e->pos();           //  Remember new location
+   update();                 //  Request redisplay
 }
 
 //
@@ -137,7 +152,7 @@ void SlamViz::wheelEvent(QWheelEvent* e)
    else if (dim>1)
       setDIM(dim-1);
    //  Signal to change dimension spinbox
-   emit dimen(dim);
+   emit dimen("dimension: " + QString::number(dim));
 }
 
 /*******************************************************************/
@@ -149,9 +164,8 @@ void SlamViz::wheelEvent(QWheelEvent* e)
 //
 void SlamViz::initializeGL()
 {
-// glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
+   glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
    setMouseTracking(true);  //  Ask for mouse events
-   //initializeOpenGLFunctions();
    texture[0] = new QOpenGLTexture(QImage(QString("yellow_fabric.bmp")));
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
@@ -189,20 +203,24 @@ void SlamViz::paintGL()
    //  Reset transformations
    glLoadIdentity();
    //  Set rotation
-   glRotated(ph , 1,0,0);
-   glRotated(th , 0,1,0);
+   //glRotated(ph , 1,0,0);
+   //glRotated(th , 0,1,0);
 
    // set projection
    if (mode)
    {
-      double Ex = -2*dim*Sin(th)*Cos(ph);
-      double Ey = +2*dim        *Sin(ph);
-      double Ez = +2*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
+      double Ex = (-2)*dim*Sin(th)*Cos(ph);
+      double Ey = (2)*dim        *Sin(ph);
+      double Ez = (2)*dim*Cos(th)*Cos(ph);
+      double dx = x*dim*Sin(th)*Cos(ph);
+      double dy = y*dim*Sin(ph);
+      double dz = z*dim*Cos(th)*Cos(ph);
+      gluLookAt(Ex-dx,Ey-dy,Ez-dz, -dx,-dy,-dz , 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
    else
    {
+      glTranslated(x,y,z);
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
    }
@@ -276,7 +294,7 @@ void SlamViz::paintGL()
    //
    //  Emit signal with display angles and dimensions
    //
-   emit angles("th,ph= "+QString::number(th)+","+QString::number(ph));
+   //emit angles("th,ph= "+QString::number(th)+","+QString::number(ph));
 
    //  Done
    glFlush();

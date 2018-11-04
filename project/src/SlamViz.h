@@ -21,7 +21,7 @@ Q_OBJECT
 private:
 	int th;
 	int ph;
-	bool mouse;
+	bool r_mouse, l_mouse;
 	bool axes;
 	bool light;
 	bool mode; 
@@ -29,6 +29,7 @@ private:
 	double dim;
 	double asp;
 	double x0,y0,z0;  //  Start position
+	double x,y,z; // current view center
 	double ylight;
 	int smooth;
 	int ambient, diffuse, specular, distance, zh,
@@ -52,7 +53,7 @@ public slots:
 
 signals:
 	void angles(QString text); // Signal for display angles
-	void dimen(double dim);    // Signal for display dimensions
+	void dimen(QString text);    // Signal for display dimensions
 
 protected:
 	void initializeGL();											// Initialize widget

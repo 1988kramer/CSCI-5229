@@ -34,6 +34,8 @@ Viewer::Viewer(QWidget* parent)
    QPushButton* axes = new QPushButton("Axes");
    QPushButton* texture = new QPushButton("Texture");
 
+   QLabel* dim = new QLabel();
+
    //  Connect valueChanged() signals to Lorenz slots
    connect(reset, SIGNAL(clicked(void)), slam_viz, SLOT(reset(void)));
    connect(display, SIGNAL(clicked(void)), slam_viz, SLOT(toggleDisplay(void)));
@@ -41,8 +43,7 @@ Viewer::Viewer(QWidget* parent)
    connect(axes, SIGNAL(clicked(void)), slam_viz, SLOT(toggleAxes(void)));
    connect(texture, SIGNAL(clicked(void)), slam_viz, SLOT(switchTexture(void)));
    //  Connect lorenz signals to display widgets
-   // connect(slam_viz , SIGNAL(dimen(double))   , dim    , SLOT(setValue(double)));
-
+   connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
 
 
    //  Connect combo box to setPAR in myself
@@ -64,6 +65,7 @@ Viewer::Viewer(QWidget* parent)
    dsplay->addWidget(lighting,3,0);
    dsplay->addWidget(axes,4,0);
    dsplay->addWidget(texture,5,0);
+   dsplay->addWidget(dim,6,0);
    dspbox->setLayout(dsplay);
    layout->addWidget(dspbox,2,1);
 
