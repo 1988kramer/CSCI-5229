@@ -10,7 +10,7 @@
 #include <QOpenGLTexture>
 #include "airplane.h"
 #include "CSCIx229.h"
-#include <QOpenGLFunctions>
+//#include <QOpenGLFunctions>
 #include <iostream>
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture);
@@ -21,6 +21,7 @@ Q_OBJECT
 private:
 	int th;
 	int ph;
+	int fov;
 	bool r_mouse, l_mouse;
 	bool axes;
 	bool light;

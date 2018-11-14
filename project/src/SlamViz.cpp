@@ -24,6 +24,7 @@ SlamViz::SlamViz(QWidget* parent)
    distance  =   5;  // Light distance
    zh        =  90;  // Light azimuth
    ylight = 0;
+   fov = 55;
    local     =   0;  // Local Viewer Model
    emission  =   0;  // Emission intensity (%)
    shiny   =   1;  // Shininess (value)
@@ -237,11 +238,11 @@ void SlamViz::paintGL()
    if (light)
    {
       //  Translate intensity to color vectors
-      float Ambient[]   = {0.01*ambient ,0.01*ambient ,0.01*ambient ,1.0};
-      float Diffuse[]   = {0.01*diffuse ,0.01*diffuse ,0.01*diffuse ,1.0};
-      float Specular[]  = {0.01*specular,0.01*specular,0.01*specular,1.0};
+      float Ambient[]   = {float(0.01*ambient),float(0.01*ambient),float(0.01*ambient),1.0};
+      float Diffuse[]   = {float(0.01*diffuse),float(0.01*diffuse),float(0.01*diffuse),1.0};
+      float Specular[]  = {float(0.01*specular),float(0.01*specular),float(0.01*specular),1.0};
       //  Light position
-      float Position[]  = {distance*Cos(zh),ylight,distance*Sin(zh),1.0};
+      float Position[]  = {float(distance*Cos(zh)),float(ylight),float(distance*Sin(zh)),1.0};
       //  Draw light position as ball (still no lighting here)
       glColor3f(1,1,1);
       ball(Position[0],Position[1],Position[2] , 0.1);
@@ -323,7 +324,7 @@ void SlamViz::ball(double x,double y,double z,double r)
 {
    int th,ph;
    float yellow[] = {1.0,1.0,0.0,1.0};
-   float Emission[]  = {0.0,0.0,0.01*emission,1.0};
+   float Emission[]  = {0.0,0.0,float(0.01*emission),1.0};
    //  Save transformation
    glPushMatrix();
    //  Offset, scale and rotate
