@@ -1,0 +1,85 @@
+\documentclass[11pt]{article}
+
+% ==== PACKAGES ==== %
+% \usepackage{fullpage}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{bbm}
+\usepackage[letterpaper, margin=1in]{geometry}
+
+% ==== MARGINS ==== %
+% \pagestyle{empty}
+% \setlength{\oddsidemargin}{0in}
+% \setlength{\textwidth}{6.8in}
+% \setlength{\textheight}{9.5in}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{CSCI 5229}
+\lhead{Progress Report}
+\rfoot{Page \thepage}
+
+
+\newtheorem*{solution*}{Solution}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{claim}[lemma]{Claim}
+\newtheorem{definition}[lemma]{Definition}
+\newtheorem{corollary}[lemma]{Corollary}
+\lstset{moredelim=[is][\bfseries]{[*}{*]}}
+
+% ==== DOCUMENT PROPER ==== %
+\begin{document}
+
+\thispagestyle{empty}
+
+% --- Header Box --- %
+\newlength{\boxlength}\setlength{\boxlength}{\textwidth}
+\addtolength{\boxlength}{-4mm}
+
+\begin{center}\framebox{\parbox{\boxlength}{\bf
+      Computer Graphics \hfill Progress Report\\
+      CSCI 5229 Fall 2018 \hfill Due Date: Nov 8, 2018\\
+      Name: Andrew Kramer \hfill 
+}}
+\end{center}
+
+\section*{Progress Thus Far}
+\begin{itemize}
+	\item Set up QT widget to display the scene
+	\item Widget includes options to change perspective, toggle display of landmarks, skybox, etc
+	\item Added skybox to scene
+	\item Fixed face culling problems with piper cub model
+	\item User can rotate view with right mouse button and translate with left mouse button
+\end{itemize}
+
+\section*{To Do By Review}
+\begin{itemize}
+	\item Add gridworld background as alternative to skybox
+	\item Make the piper cub model match the pose of a vehicle tracked by SLAM
+	\item Add display of previous poses, possibly as a smoke trail
+\end{itemize}
+
+\section*{To Do After Review}
+\begin{itemize}
+	\item Add accurate shadowing to scene
+	\item Add option to switch between environment and vehicle-centered views
+	\item Add display of landmarks, distinction between active and marginalized landmarks, and landmark labels
+\end{itemize}
+
+\section*{Optional To Do}
+\begin{itemize}
+	\item Add option to adjust playback speed when running from logs
+	\item Add connection between active landmarks and vehicle
+	\item Add cockpit view option
+\end{itemize}
+
+\end{document}
