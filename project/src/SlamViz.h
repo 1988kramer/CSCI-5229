@@ -5,15 +5,31 @@
 #ifndef SLAMVIZ_H
 #define SLAMVIZ_H
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <QGLWidget>
 #include <QString>
 #include <QOpenGLTexture>
 #include "airplane.h"
 #include "CSCIx229.h"
-//#include <QOpenGLFunctions>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture);
+
+typedef struct Pose
+{
+	glm::mat4 T_WS;
+	double timestamp;
+} Pose;
 
 class SlamViz : public QGLWidget
 {
@@ -33,13 +49,18 @@ private:
 	double x0,y0,z0;  //  Start position
 	double x,y,z; // current view center
 	double ylight;
+	double cur_time;
+	double last_time;
+	double last_stamp;
 	int smooth;
 	int ambient, diffuse, specular, distance, zh,
 			local, emission, shiny, inc;
 	airplane* plane;
 	QOpenGLTexture *texture[3];
-	QOpenGLTexture *sky[2];
+	QOpenGLTexture *sky[3];
 	QTimer* timer;
+	std::ifstream* pose_file;
+	Pose cur_pose;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -73,6 +94,7 @@ private:
 	void Sky(double D);
 	void displayGrid(double D);
 	void project();
+	void readPose();
 };
 
 #endif

@@ -29,11 +29,16 @@ SlamViz::SlamViz(QWidget* parent)
    emission  =   0;  // Emission intensity (%)
    shiny   =   1;  // Shininess (value)
    inc       =  10;  // Ball increment
+   cur_time = 0.0;
+   last_time = 0.0;
+   last_stamp = 0.0;
    plane = new airplane(texture,3);
    disp_sky = axes = light = mode = true;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
    timer->start(16);
+   pose_file = new std::ifstream();
+   pose_file->open("test_log.txt");
 }
 
 /********************************************************************/
@@ -144,8 +149,8 @@ void SlamViz::mouseMoveEvent(QMouseEvent* e)
    // translate field of view if left mouse
    if (l_mouse)
    {
-      x += d.x() / 10.0;
-      y -= d.y() / 10.0;
+      x += (d.x()*Cos(th)*Sin(ph) + d.y()*Sin(th)*Cos(ph))/ 10.0;
+      y -= (d.y()*Sin(th) + d.x()*Sin(ph))/ 10.0;
    }
    pos = e->pos();           //  Remember new location
    update();                 //  Request redisplay
@@ -182,11 +187,18 @@ void SlamViz::initializeGL()
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
    sky[0] = new QOpenGLTexture(QImage(QString("sky0.bmp")));
    sky[1] = new QOpenGLTexture(QImage(QString("sky1.bmp")));
+   sky[2] = new QOpenGLTexture(QImage(QString("sky2.jpg")));
 }
 
 void SlamViz::timerEvent(void)
 {
+   cur_time += 16;
    zh = (zh + 1) % 360;
+   if (cur_time - last_time >= 64)
+   {
+      last_time = cur_time;
+      readPose();
+   }
    update();
 }
 
@@ -226,20 +238,16 @@ void SlamViz::paintGL()
       double Ex = (-2)*dim*Sin(th)*Cos(ph);
       double Ey = (2)*dim        *Sin(ph);
       double Ez = (2)*dim*Cos(th)*Cos(ph);
-      double dx = x*dim*Sin(th)*Cos(ph);
-      double dy = y*dim*Sin(ph);
-      double dz = z*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex+dx,Ey+dy,Ez+dz, dx,dy,dz, 0,Cos(ph),0);
+      gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
    else
    {
-      glTranslated(x,y,z);
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
    }
    if (disp_sky)
-      Sky(3.0*dim);
+      Sky(4.0*dim);
    else
       displayGrid(10);
 
@@ -278,10 +286,14 @@ void SlamViz::paintGL()
    else
       glDisable(GL_LIGHTING);
 
+   glPushMatrix();
    //  Draw scene
+   glRotated(-90.0,1.0,0.0,0.0);
+   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
    plane->drawAirplane(0,0,0,
-                          1,0,0,
-                          0,1,0);
+                       0,0,1,
+                       1,0,0);
+   glPopMatrix();
 
    //  Draw axes - no lighting from here on
    glDisable(GL_LIGHTING);
@@ -420,42 +432,81 @@ void SlamViz::Sky(double D)
    glEnable(GL_TEXTURE_2D);
 
    //  Sides
-   sky[0]->bind();
+   sky[2]->bind();
    glBegin(GL_QUADS);
-   glTexCoord2f(0.00,0); glVertex3f(-D,-D,-D);
-   glTexCoord2f(0.25,0); glVertex3f(+D,-D,-D);
-   glTexCoord2f(0.25,-1); glVertex3f(+D,+D,-D);
-   glTexCoord2f(0.00,-1); glVertex3f(-D,+D,-D);
+   glTexCoord2f(0.25,0.6667); glVertex3f(-D,-D,-D);
+   glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
+   glTexCoord2f(0.5,0.3333); glVertex3f(+D,+D,-D);
+   glTexCoord2f(0.25,0.3333); glVertex3f(-D,+D,-D);
 
-   glTexCoord2f(0.25,0); glVertex3f(+D,-D,-D);
-   glTexCoord2f(0.50,0); glVertex3f(+D,-D,+D);
-   glTexCoord2f(0.50,-1); glVertex3f(+D,+D,+D);
-   glTexCoord2f(0.25,-1); glVertex3f(+D,+D,-D);
+   glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
+   glTexCoord2f(0.75,0.6667); glVertex3f(+D,-D,+D);
+   glTexCoord2f(0.75,0.3333); glVertex3f(+D,+D,+D);
+   glTexCoord2f(0.5,0.3333); glVertex3f(+D,+D,-D);
 
-   glTexCoord2f(0.50,0); glVertex3f(+D,-D,+D);
-   glTexCoord2f(0.75,0); glVertex3f(-D,-D,+D);
-   glTexCoord2f(0.75,-1); glVertex3f(-D,+D,+D);
-   glTexCoord2f(0.50,-1); glVertex3f(+D,+D,+D);
+   glTexCoord2f(0.75,0.6667); glVertex3f(+D,-D,+D);
+   glTexCoord2f(1.0,0.6667); glVertex3f(-D,-D,+D);
+   glTexCoord2f(1.0,0.3333); glVertex3f(-D,+D,+D);
+   glTexCoord2f(0.75,0.3333); glVertex3f(+D,+D,+D);
 
-   glTexCoord2f(0.75,0); glVertex3f(-D,-D,+D);
-   glTexCoord2f(1.00,0); glVertex3f(-D,-D,-D);
-   glTexCoord2f(1.00,-1); glVertex3f(-D,+D,-D);
-   glTexCoord2f(0.75,-1); glVertex3f(-D,+D,+D);
+   glTexCoord2f(0.0,0.6667); glVertex3f(-D,-D,+D);
+   glTexCoord2f(0.25,0.6667); glVertex3f(-D,-D,-D);
+   glTexCoord2f(0.25,0.3333); glVertex3f(-D,+D,-D);
+   glTexCoord2f(0.0,0.3333); glVertex3f(-D,+D,+D);
    glEnd();
 
    //  Top and bottom
-   sky[1]->bind();
+   //sky[1]->bind();
    glBegin(GL_QUADS);
-   glTexCoord2f(0.0,0); glVertex3f(+D,+D,-D);
-   glTexCoord2f(0.5,0); glVertex3f(+D,+D,+D);
-   glTexCoord2f(0.5,-1); glVertex3f(-D,+D,+D);
-   glTexCoord2f(0.0,-1); glVertex3f(-D,+D,-D);
+   glTexCoord2f(0.5,0.3334); glVertex3f(+D,+D,-D);
+   glTexCoord2f(0.5,0.0); glVertex3f(+D,+D,+D);
+   glTexCoord2f(0.25,0.0); glVertex3f(-D,+D,+D);
+   glTexCoord2f(0.25,0.3334); glVertex3f(-D,+D,-D);
 
-   glTexCoord2f(1.0,-1); glVertex3f(-D,-D,+D);
-   glTexCoord2f(0.5,-1); glVertex3f(+D,-D,+D);
-   glTexCoord2f(0.5,0); glVertex3f(+D,-D,-D);
-   glTexCoord2f(1.0,0); glVertex3f(-D,-D,-D);
+   glTexCoord2f(0.25,1.0); glVertex3f(-D,-D,+D);
+   glTexCoord2f(0.5,1.0); glVertex3f(+D,-D,+D);
+   glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
+   glTexCoord2f(0.25,0.6667); glVertex3f(-D,-D,-D);
    glEnd();
 
    glDisable(GL_TEXTURE_2D);
+}
+
+void SlamViz::readPose()
+{
+   std::string line;
+   if (std::getline(*pose_file,line))
+   {
+      std::istringstream ss(line);
+      std::string token;
+      std::getline(ss, token, ' ');
+      cur_pose.timestamp = std::stod(token);
+      glm::vec3 translation;
+      for (int i = 0; i < 3; i++)
+      {
+         std::getline(ss, token, ' ');
+         translation[i] = 2.0*std::stof(token);
+      }
+      // swap y and z
+      //double temp = translation[2];
+      //translation[2] = translation[1];
+      //translation[1] = temp;
+
+      // swap x and y
+      //temp = translation[2];
+      //translation[2] = translation[0];
+      //translation[0] = temp;
+
+      std::vector<float> quat_vals;
+      for (int i = 0; i < 4; i++)
+      {
+         std::getline(ss, token, ' ');
+         quat_vals.push_back(std::stof(token));
+      }
+      glm::quat rotation(quat_vals[3],quat_vals[0],quat_vals[1],quat_vals[2]);
+      glm::mat4 rotation_mat = glm::toMat4(rotation);
+      glm::mat4 T_mat = glm::translate(glm::mat4(1), translation);
+
+      cur_pose.T_WS = T_mat * rotation_mat;
+   }
 }
