@@ -357,8 +357,10 @@ void SlamViz::project()
    //  Orthogonal projection to dim
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
-   if (asp>1)
-      glOrtho(-dim*asp, +dim*asp, -dim, +dim, -8*dim, + 8*dim);
+   //if (asp>1)
+   //   glOrtho(-dim*asp, +dim*asp, -dim, +dim, -8*dim, + 8*dim);
+   if (mode)
+      gluPerspective(fov,asp,dim/16,16*dim);
    else
       glOrtho(-dim, +dim, -dim/asp, +dim/asp, -8*dim, + 8*dim);
 
