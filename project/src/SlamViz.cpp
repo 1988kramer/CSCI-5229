@@ -247,44 +247,53 @@ void SlamViz::paintGL()
       glRotatef(th,0,1,0);
    }
    if (disp_sky)
-      Sky(4.0*dim);
+      Sky(3.0*dim);
    else
       displayGrid(10);
 
    //  Flat or smooth shading
    glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
 
-   //  Light switch
+   //  Translate intensity to color vectors
+   float Ambient[]   = {float(0.01*ambient),float(0.01*ambient),float(0.01*ambient),1.0};
+   float Diffuse[]   = {float(0.01*diffuse),float(0.01*diffuse),float(0.01*diffuse),1.0};
+   float Specular[]  = {float(0.01*specular),float(0.01*specular),float(0.01*specular),1.0};
+   
+   //  switch light from at sun position to orbiting
+   float Position[4];
    if (light)
    {
-      //  Translate intensity to color vectors
-      float Ambient[]   = {float(0.01*ambient),float(0.01*ambient),float(0.01*ambient),1.0};
-      float Diffuse[]   = {float(0.01*diffuse),float(0.01*diffuse),float(0.01*diffuse),1.0};
-      float Specular[]  = {float(0.01*specular),float(0.01*specular),float(0.01*specular),1.0};
-      //  Light position
-      float Position[]  = {float(distance*Cos(zh)),float(ylight),float(distance*Sin(zh)),1.0};
-      //  Draw light position as ball (still no lighting here)
-      glColor3f(1,1,1);
-      ball(Position[0],Position[1],Position[2] , 0.1);
-      //  OpenGL should normalize normal vectors
-      glEnable(GL_NORMALIZE);
-      //  Enable lighting
-      glEnable(GL_LIGHTING);
-      //  Location of viewer for specular calculations
-      glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,local);
-      //  glColor sets ambient and diffuse color materials
-      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-      glEnable(GL_COLOR_MATERIAL);
-      //  Enable light 0
-      glEnable(GL_LIGHT0);
-      //  Set ambient, diffuse, specular components and position of light 0
-      glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
-      glLightfv(GL_LIGHT0,GL_DIFFUSE ,Diffuse);
-      glLightfv(GL_LIGHT0,GL_SPECULAR,Specular);
-      glLightfv(GL_LIGHT0,GL_POSITION,Position);
+      Position[0] = 1.5*float(distance*Cos(zh));
+      Position[1] = 1.5*float(ylight);
+      Position[2] = 1.5*float(distance*Sin(zh));
+      Position[3] = 1.0;
    }
    else
-      glDisable(GL_LIGHTING);
+   {
+      Position[0] = float(3.0*dim);
+      Position[1] = float(3.0*dim);
+      Position[2] = 0.0; 
+      Position[3] = 1.0;
+   }
+
+   glColor3f(1,1,1);
+   ball(Position[0],Position[1],Position[2] , 0.1);
+   //  OpenGL should normalize normal vectors
+   glEnable(GL_NORMALIZE);
+   //  Enable lighting
+   glEnable(GL_LIGHTING);
+   //  Location of viewer for specular calculations
+   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,local);
+   //  glColor sets ambient and diffuse color materials
+   glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+   glEnable(GL_COLOR_MATERIAL);
+   //  Enable light 0
+   glEnable(GL_LIGHT0);
+   //  Set ambient, diffuse, specular components and position of light 0
+   glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
+   glLightfv(GL_LIGHT0,GL_DIFFUSE ,Diffuse);
+   glLightfv(GL_LIGHT0,GL_SPECULAR,Specular);
+   glLightfv(GL_LIGHT0,GL_POSITION,Position);
 
    glPushMatrix();
    //  Draw scene
