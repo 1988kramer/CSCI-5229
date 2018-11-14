@@ -2,6 +2,7 @@
 #define VIEWER_H
 
 #include <QWidget>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 
 class Viewer : public QWidget

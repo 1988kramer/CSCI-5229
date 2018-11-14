@@ -31,9 +31,9 @@ Viewer::Viewer(QWidget* parent)
    QPushButton* reset = new QPushButton("Reset");
    QPushButton* display = new QPushButton("Display");
    QPushButton* lighting = new QPushButton("Lighting");
-   QPushButton* axes = new QPushButton("Axes");
+   QCheckBox* axes = new QCheckBox("Axes");
    QPushButton* texture = new QPushButton("Texture");
-   QPushButton* sky_button = new QPushButton("Sky");
+   QCheckBox* sky_button = new QCheckBox("Sky");
 
    QLabel* dim = new QLabel();
 

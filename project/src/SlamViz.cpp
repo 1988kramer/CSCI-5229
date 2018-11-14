@@ -33,7 +33,8 @@ SlamViz::SlamViz(QWidget* parent)
    last_time = 0.0;
    last_stamp = 0.0;
    plane = new airplane(texture,3);
-   disp_sky = axes = light = mode = true;
+   disp_sky = axes = false; 
+   light = mode = true;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
    timer->start(16);
