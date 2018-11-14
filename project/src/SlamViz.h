@@ -26,6 +26,7 @@ private:
 	bool axes;
 	bool light;
 	bool mode; 
+	bool disp_sky;
 	QPoint pos;
 	double dim;
 	double asp;
@@ -49,9 +50,10 @@ public slots:
 	void toggleAxes(void);
 	void toggleLight(void);
 	void toggleDisplay(void);
-  void setDIM(double DIM);    //  Slot to set dim
-  void switchTexture(void);
-  void timerEvent(void);
+  	void setDIM(double DIM);    //  Slot to set dim
+  	void switchTexture(void);
+  	void timerEvent(void);
+  	void toggleSky(void);
 
 signals:
 	void angles(QString text); // Signal for display angles
@@ -69,6 +71,7 @@ private:
 	void ball(double x,double y,double z,double r);
 	void Vertex(double th, double ph);
 	void Sky(double D);
+	void displayGrid(double D);
 	void project();
 };
 

@@ -33,6 +33,7 @@ Viewer::Viewer(QWidget* parent)
    QPushButton* lighting = new QPushButton("Lighting");
    QPushButton* axes = new QPushButton("Axes");
    QPushButton* texture = new QPushButton("Texture");
+   QPushButton* sky_button = new QPushButton("Sky");
 
    QLabel* dim = new QLabel();
 
@@ -42,6 +43,7 @@ Viewer::Viewer(QWidget* parent)
    connect(lighting, SIGNAL(clicked(void)), slam_viz, SLOT(toggleLight(void)));
    connect(axes, SIGNAL(clicked(void)), slam_viz, SLOT(toggleAxes(void)));
    connect(texture, SIGNAL(clicked(void)), slam_viz, SLOT(switchTexture(void)));
+   connect(sky_button, SIGNAL(clicked(void)), slam_viz, SLOT(toggleSky(void)));
    //  Connect lorenz signals to display widgets
    connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
 
@@ -65,7 +67,8 @@ Viewer::Viewer(QWidget* parent)
    dsplay->addWidget(lighting,3,0);
    dsplay->addWidget(axes,4,0);
    dsplay->addWidget(texture,5,0);
-   dsplay->addWidget(dim,6,0);
+   dsplay->addWidget(sky_button,6,0);
+   dsplay->addWidget(dim,7,0);
    dspbox->setLayout(dsplay);
    layout->addWidget(dspbox,2,1);
 

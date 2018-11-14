@@ -30,7 +30,7 @@ SlamViz::SlamViz(QWidget* parent)
    shiny   =   1;  // Shininess (value)
    inc       =  10;  // Ball increment
    plane = new airplane(texture,3);
-   axes = light = mode = true;
+   disp_sky = axes = light = mode = true;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
    timer->start(16);
@@ -50,6 +50,15 @@ void SlamViz::toggleAxes(void)
 }
 
 //
+// toggle between sky and gridworld display
+//
+void SlamViz::toggleSky(void)
+{
+   disp_sky = !disp_sky;
+   update();
+}
+
+//
 // toggle lighting
 //
 void SlamViz::toggleLight(void)
@@ -64,6 +73,7 @@ void SlamViz::toggleLight(void)
 void SlamViz::toggleDisplay(void)
 {
    mode = !mode;
+   project();
    update();
 }
 
@@ -219,7 +229,7 @@ void SlamViz::paintGL()
       double dx = x*dim*Sin(th)*Cos(ph);
       double dy = y*dim*Sin(ph);
       double dz = z*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex,Ey,Ez, 0,0,0 , 0,Cos(ph),0);
+      gluLookAt(Ex+dx,Ey+dy,Ez+dz, dx,dy,dz, 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
    else
@@ -228,8 +238,10 @@ void SlamViz::paintGL()
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
    }
-
-   Sky(1.5*dim);
+   if (disp_sky)
+      Sky(3.0*dim);
+   else
+      displayGrid(10);
 
    //  Flat or smooth shading
    glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
@@ -367,6 +379,39 @@ void SlamViz::project()
 
    //  Back to model view
    glMatrixMode(GL_MODELVIEW);
+}
+
+void SlamViz::displayGrid(double D)
+{
+   double limit = dim / 2.0;
+   glBegin(GL_LINES);
+   glColor3f(1.0,0.0,0.0);
+   glLineWidth(1.0);
+   glVertex3d(-D*limit,0.0,0.0);
+   glVertex3d(D*limit,0.0,0.0);
+   glVertex3d(0.0,0.0,-D*limit);
+   glVertex3d(0.0,0.0,D*limit);
+
+   glColor3f(1.0,1.0,1.0);
+   glLineWidth(0.25);
+   for (int i = -limit; i <= limit; i++)
+   {
+      if (i != 0)
+      {
+         glVertex3d(-D*limit,0.0,D*i);
+         glVertex3d(D*limit,0.0,D*i);
+      }
+   }
+   for (int i = -limit; i <= limit; i++)
+   {
+      if (i != 0)
+      {
+         glVertex3d(D*i,0.0,-D*limit);
+         glVertex3d(D*i,0.0,D*limit);
+      }
+   }
+
+   glEnd();
 }
 
 void SlamViz::Sky(double D)

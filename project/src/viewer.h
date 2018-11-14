@@ -8,7 +8,7 @@ class Viewer : public QWidget
 {
 Q_OBJECT                 //  Qt magic macro
 private:
-  QDoubleSpinBox* dim;  //  Spinbox for dim
+  //QDoubleSpinBox* dim;  //  Spinbox for dim
 public:
   Viewer(QWidget* parent=0); //  Constructor
 private slots:
