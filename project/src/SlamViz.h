@@ -21,6 +21,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/matrix.hpp>
 
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture);
@@ -61,6 +63,7 @@ private:
 	QTimer* timer;
 	std::ifstream* pose_file;
 	Pose cur_pose;
+	std::vector<Pose> prev_poses;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -95,6 +98,8 @@ private:
 	void displayGrid(double D);
 	void project();
 	void readPose();
+	void drawAxes(double len, bool draw_labels);
+	void addToPrevPoses();
 };
 
 #endif

@@ -169,7 +169,7 @@ void SlamViz::wheelEvent(QWheelEvent* e)
    else if (dim>1)
       setDIM(dim-1);
    //  Signal to change dimension spinbox
-   emit dimen("dimension: " + QString::number(dim));
+   //emit dimen("dimension: " + QString::number(dim));
 }
 
 /*******************************************************************/
@@ -198,6 +198,7 @@ void SlamViz::timerEvent(void)
    if (cur_time - last_time >= 64)
    {
       last_time = cur_time;
+      addToPrevPoses();
       readPose();
    }
    update();
@@ -221,7 +222,6 @@ void SlamViz::resizeGL(int width, int height)
 //
 void SlamViz::paintGL()
 {
-   const double len=2.0;
    //  Clear screen and Z-buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    glEnable(GL_DEPTH_TEST);
@@ -305,31 +305,18 @@ void SlamViz::paintGL()
                        1,0,0);
    glPopMatrix();
 
-   //  Draw axes - no lighting from here on
-   glDisable(GL_LIGHTING);
-   glColor3f(1,1,1);
-   if (axes)
+   for (int i = 0; i < prev_poses.size(); i++)
    {
-      glBegin(GL_LINES);
-      glVertex3d(0.0,0.0,0.0);
-      glVertex3d(len,0.0,0.0);
-      glVertex3d(0.0,0.0,0.0);
-      glVertex3d(0.0,len,0.0);
-      glVertex3d(0.0,0.0,0.0);
-      glVertex3d(0.0,0.0,len);
-      glEnd();
-      //QFont f("Helvetica");
-      //  Label axes
-      //glRasterPos3d(len,0.0,0.0);
-      //Print("X");
-      //glRasterPos3d(0.0,len,0.0);
-      //Print("Y");
-      //glRasterPos3d(0.0,0.0,len);
-      //Print("Z");
-      renderText(len, 0.0, 0.0, QString("X"));
-      renderText(0.0, len, 0.0, QString("Y"));
-      renderText(0.0, 0.0, len, QString("Z"));
+      glPushMatrix();
+      glRotated(-90.0,1.0,0.0,0.0);
+      glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
+      drawAxes(0.5,false);
+      glPopMatrix();
    }
+
+   //  Draw axes - no lighting from here on
+   if (axes)
+      drawAxes(2.0, true);
 
    //
    //  Emit signal with display angles and dimensions
@@ -518,5 +505,58 @@ void SlamViz::readPose()
       glm::mat4 T_mat = glm::translate(glm::mat4(1), translation);
 
       cur_pose.T_WS = T_mat * rotation_mat;
+   }
+}
+
+void SlamViz::drawAxes(double len, bool draw_labels)
+{
+   glDisable(GL_LIGHTING);
+   glColor3f(1,1,1);
+   glBegin(GL_LINES);
+   glVertex3d(0.0,0.0,0.0);
+   glVertex3d(len,0.0,0.0);
+   glVertex3d(0.0,0.0,0.0);
+   glVertex3d(0.0,len,0.0);
+   glVertex3d(0.0,0.0,0.0);
+   glVertex3d(0.0,0.0,len);
+   glEnd();
+   if (draw_labels)
+   {
+      renderText(len, 0.0, 0.0, QString("X"));
+      renderText(0.0, len, 0.0, QString("Y"));
+      renderText(0.0, 0.0, len, QString("Z"));
+   }
+}
+
+// add pose to previous pose vector if it is above a 
+// threshold distance to the last pose in that vector
+void SlamViz::addToPrevPoses()
+{
+   if (prev_poses.size() == 0)
+   {
+      prev_poses.push_back(cur_pose);
+   }
+   else
+   {
+      // get translation component from current pose and
+      // last pose in previous pose vector
+      glm::vec3 scale;
+      glm::quat rotation;
+      glm::vec3 cur_trans;
+      glm::vec3 prev_trans;
+      glm::vec3 skew;
+      glm::vec4 perspective;
+      glm::decompose(cur_pose.T_WS, scale, rotation, cur_trans, skew, perspective);
+      glm::decompose(prev_poses.back().T_WS, scale, rotation, prev_trans, skew, perspective);
+
+
+      // calculate the magnitude of the translation
+      // between the current pose and last pose
+      double dist = sqrt(glm::length2(cur_trans - prev_trans));
+
+      // if distance from last pose is greater than threshold, 
+      // add to previous pose vector
+      if (dist > 0.5)
+         prev_poses.push_back(cur_pose);
    }
 }
