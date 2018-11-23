@@ -12,3 +12,4 @@ moc*
 .DS_Store
 .qmake*
 *.app
+*.txt
