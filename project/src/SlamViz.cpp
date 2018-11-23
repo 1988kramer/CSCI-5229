@@ -34,7 +34,7 @@ SlamViz::SlamViz(QWidget* parent)
    last_stamp = 0.0;
    scale_factor = 2.0;
    plane = new airplane(texture,3);
-   disp_sky = axes = false; 
+   disp_inactive_lmrks = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.0;
    light = mode = true;
    timer = new QTimer(this);
@@ -71,6 +71,12 @@ void SlamViz::toggleSky(void)
 void SlamViz::setLmrkDispBound(double bound)
 {
    lmrk_lwr_bound = bound;
+   update();
+}
+
+void SlamViz::toggleInactive(void)
+{
+   disp_inactive_lmrks = !disp_inactive_lmrks;
    update();
 }
 
@@ -316,17 +322,36 @@ void SlamViz::paintGL()
                        1,0,0);
    glPopMatrix();
 
-   for (int i = 0; i < lmrks.size(); i++)
+   for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
+      it != lmrks.end(); it++)
    {
-      if (lmrks[i].quality >= lmrk_lwr_bound)
+      if (it->second.quality >= lmrk_lwr_bound)
       {
          glPushMatrix();
          glRotated(-90.0,1.0,0.0,0.0);
-         double x = lmrks[i].point[0];
-         double y = lmrks[i].point[1];
-         double z = lmrks[i].point[2];
-         ball(x,y,z,scale_factor*lmrks[i].quality);
+         double x = it->second.point[0];
+         double y = it->second.point[1];
+         double z = it->second.point[2];
+         ball(x,y,z,scale_factor*it->second.quality);
          glPopMatrix();
+      }
+   }
+
+   if (disp_inactive_lmrks)
+   {
+      for (std::map<unsigned long, Landmark>::iterator it = inactive_lmrks.begin();
+         it != inactive_lmrks.end(); it++)
+      {
+         if (it->second.quality >= lmrk_lwr_bound)
+         {
+            glPushMatrix();
+            glRotated(-90.0,1.0,0.0,0.0);
+            double x = it->second.point[0];
+            double y = it->second.point[1];
+            double z = it->second.point[2];
+            ball(x,y,z,0.05);
+            glPopMatrix();
+         }
       }
    }
 
@@ -529,17 +554,17 @@ void SlamViz::readLmrks()
    std::string line;
    if (std::getline(*lmrk_file, line))
    {
-      lmrks.clear();
+      // insert new landmarks
       unsigned int stamp = std::stod(line);
       std::getline(*lmrk_file, line);
       while (line != "")
       {
-         Landmark lmrk;
-         lmrk.timestamp = stamp;
          std::istringstream ss(line);
          std::string token;
          std::getline(ss, token, ' ');
-         lmrk.id = std::stoi(token);
+         unsigned long id = std::stol(token);
+         Landmark lmrk;
+         lmrk.timestamp = stamp;
          std::getline(ss, token, ' ');
          lmrk.quality = std::stod(token);
          for (int i = 0; i < 3; i++)
@@ -547,8 +572,30 @@ void SlamViz::readLmrks()
             std::getline(ss, token, ' ');
             lmrk.point[i] = scale_factor*std::stof(token);
          }
-         lmrks.push_back(lmrk);
+         // update timestamp if landmark already exists
+         if (lmrks.find(id) != lmrks.end())
+         {
+            lmrks.at(id) = lmrk;
+         }
+         else
+         {
+            lmrks.insert(std::pair<unsigned long, Landmark>(id, lmrk));
+         }
          std::getline(*lmrk_file, line);
+      }
+      // remove old landmarks
+      std::vector<unsigned long> marginalized_ids;
+      for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
+         it != lmrks.end(); it++)
+      {
+         if (it->second.timestamp < stamp)
+            marginalized_ids.push_back(it->first);
+      }
+      for (int i = 0; i < marginalized_ids.size(); i++)
+      {
+         Landmark marginalized = lmrks.at(marginalized_ids[i]);
+         lmrks.erase(marginalized_ids[i]);
+         inactive_lmrks.insert(std::pair<unsigned long, Landmark>(marginalized_ids[i],marginalized));
       }
    }
 }

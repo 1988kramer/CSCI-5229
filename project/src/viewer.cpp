@@ -34,6 +34,7 @@ Viewer::Viewer(QWidget* parent)
    QCheckBox* axes = new QCheckBox("Axes");
    QPushButton* texture = new QPushButton("Texture");
    QCheckBox* sky_button = new QCheckBox("Sky");
+   QCheckBox* inactive = new QCheckBox("inactive lmrks");
    QDoubleSpinBox* land_lower = new QDoubleSpinBox();
    //QDoubleSpinBox* land_upper = new QDoubleSpinBox("max lmrk quality");
 
@@ -51,6 +52,7 @@ Viewer::Viewer(QWidget* parent)
    connect(axes, SIGNAL(clicked(void)), slam_viz, SLOT(toggleAxes(void)));
    connect(texture, SIGNAL(clicked(void)), slam_viz, SLOT(switchTexture(void)));
    connect(sky_button, SIGNAL(clicked(void)), slam_viz, SLOT(toggleSky(void)));
+   connect(inactive, SIGNAL(clicked(void)), slam_viz, SLOT(toggleInactive(void)));
    connect(land_lower, SIGNAL(valueChanged(double)), slam_viz, SLOT(setLmrkDispBound(double)));
    //  Connect lorenz signals to display widgets
    connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
@@ -79,6 +81,7 @@ Viewer::Viewer(QWidget* parent)
    dsplay->addWidget(new QLabel("min lmrk qual"),7,0);
    dsplay->addWidget(land_lower,7,1);
    dsplay->addWidget(dim,8,0);
+   dsplay->addWidget(inactive,9,0);
    dspbox->setLayout(dsplay);
    layout->addWidget(dspbox,2,1);
 

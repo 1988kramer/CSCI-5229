@@ -37,7 +37,6 @@ typedef struct Landmark
 {
 	glm::vec3 point;
 	double timestamp;
-	unsigned long id;
 	double quality;
 } Landmark;
 
@@ -53,6 +52,7 @@ private:
 	bool light;
 	bool mode; 
 	bool disp_sky;
+	bool disp_inactive_lmrks;
 	double lmrk_lwr_bound;
 	QPoint pos;
 	double dim;
@@ -75,7 +75,8 @@ private:
 	std::ifstream* lmrk_file;
 	Pose cur_pose;
 	std::vector<Pose> prev_poses;
-	std::vector<Landmark> lmrks;
+	std::map<unsigned long, Landmark> lmrks;
+	std::map<unsigned long, Landmark> inactive_lmrks;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -91,6 +92,7 @@ public slots:
   	void timerEvent(void);
   	void toggleSky(void);
   	void setLmrkDispBound(double bound);
+  	void toggleInactive(void);
 
 signals:
 	void angles(QString text); // Signal for display angles
