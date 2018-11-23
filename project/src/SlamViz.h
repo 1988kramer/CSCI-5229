@@ -33,6 +33,14 @@ typedef struct Pose
 	double timestamp;
 } Pose;
 
+typedef struct Landmark
+{
+	glm::vec3 point;
+	double timestamp;
+	unsigned long id;
+	double quality;
+} Landmark;
+
 class SlamViz : public QGLWidget
 {
 Q_OBJECT
@@ -45,6 +53,7 @@ private:
 	bool light;
 	bool mode; 
 	bool disp_sky;
+	double lmrk_lwr_bound;
 	QPoint pos;
 	double dim;
 	double asp;
@@ -54,6 +63,7 @@ private:
 	double cur_time;
 	double last_time;
 	double last_stamp;
+	double scale_factor;
 	int smooth;
 	int ambient, diffuse, specular, distance, zh,
 			local, emission, shiny, inc;
@@ -62,8 +72,10 @@ private:
 	QOpenGLTexture *sky[3];
 	QTimer* timer;
 	std::ifstream* pose_file;
+	std::ifstream* lmrk_file;
 	Pose cur_pose;
 	std::vector<Pose> prev_poses;
+	std::vector<Landmark> lmrks;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -78,6 +90,7 @@ public slots:
   	void switchTexture(void);
   	void timerEvent(void);
   	void toggleSky(void);
+  	void setLmrkDispBound(double bound);
 
 signals:
 	void angles(QString text); // Signal for display angles
@@ -98,6 +111,7 @@ private:
 	void displayGrid(double D);
 	void project();
 	void readPose();
+	void readLmrks();
 	void drawAxes(double len, bool draw_labels);
 	void addToPrevPoses();
 };

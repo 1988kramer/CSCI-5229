@@ -32,14 +32,18 @@ SlamViz::SlamViz(QWidget* parent)
    cur_time = 0.0;
    last_time = 0.0;
    last_stamp = 0.0;
+   scale_factor = 2.0;
    plane = new airplane(texture,3);
    disp_sky = axes = false; 
+   lmrk_lwr_bound = 0.0;
    light = mode = true;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
    timer->start(16);
    pose_file = new std::ifstream();
-   pose_file->open("test_log.txt");
+   pose_file->open("pose_log.txt");
+   lmrk_file = new std::ifstream();
+   lmrk_file->open("lmrk_log.txt");
 }
 
 /********************************************************************/
@@ -61,6 +65,12 @@ void SlamViz::toggleAxes(void)
 void SlamViz::toggleSky(void)
 {
    disp_sky = !disp_sky;
+   update();
+}
+
+void SlamViz::setLmrkDispBound(double bound)
+{
+   lmrk_lwr_bound = bound;
    update();
 }
 
@@ -200,6 +210,7 @@ void SlamViz::timerEvent(void)
       last_time = cur_time;
       addToPrevPoses();
       readPose();
+      readLmrks();
    }
    update();
 }
@@ -304,6 +315,20 @@ void SlamViz::paintGL()
                        0,0,1,
                        1,0,0);
    glPopMatrix();
+
+   for (int i = 0; i < lmrks.size(); i++)
+   {
+      if (lmrks[i].quality >= lmrk_lwr_bound)
+      {
+         glPushMatrix();
+         glRotated(-90.0,1.0,0.0,0.0);
+         double x = lmrks[i].point[0];
+         double y = lmrks[i].point[1];
+         double z = lmrks[i].point[2];
+         ball(x,y,z,scale_factor*lmrks[i].quality);
+         glPopMatrix();
+      }
+   }
 
    for (int i = 0; i < prev_poses.size(); i++)
    {
@@ -482,17 +507,8 @@ void SlamViz::readPose()
       for (int i = 0; i < 3; i++)
       {
          std::getline(ss, token, ' ');
-         translation[i] = 2.0*std::stof(token);
+         translation[i] = scale_factor*std::stof(token);
       }
-      // swap y and z
-      //double temp = translation[2];
-      //translation[2] = translation[1];
-      //translation[1] = temp;
-
-      // swap x and y
-      //temp = translation[2];
-      //translation[2] = translation[0];
-      //translation[0] = temp;
 
       std::vector<float> quat_vals;
       for (int i = 0; i < 4; i++)
@@ -505,6 +521,35 @@ void SlamViz::readPose()
       glm::mat4 T_mat = glm::translate(glm::mat4(1), translation);
 
       cur_pose.T_WS = T_mat * rotation_mat;
+   }
+}
+
+void SlamViz::readLmrks()
+{
+   std::string line;
+   if (std::getline(*lmrk_file, line))
+   {
+      lmrks.clear();
+      unsigned int stamp = std::stod(line);
+      std::getline(*lmrk_file, line);
+      while (line != "")
+      {
+         Landmark lmrk;
+         lmrk.timestamp = stamp;
+         std::istringstream ss(line);
+         std::string token;
+         std::getline(ss, token, ' ');
+         lmrk.id = std::stoi(token);
+         std::getline(ss, token, ' ');
+         lmrk.quality = std::stod(token);
+         for (int i = 0; i < 3; i++)
+         {
+            std::getline(ss, token, ' ');
+            lmrk.point[i] = scale_factor*std::stof(token);
+         }
+         lmrks.push_back(lmrk);
+         std::getline(*lmrk_file, line);
+      }
    }
 }
 
