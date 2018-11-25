@@ -53,11 +53,11 @@ private:
 	bool mode; 
 	bool disp_sky;
 	bool disp_inactive_lmrks;
+	bool pose_track;
 	double lmrk_lwr_bound;
 	QPoint pos;
 	double dim;
 	double asp;
-	double x0,y0,z0;  //  Start position
 	double x,y,z; // current view center
 	double ylight;
 	double cur_time;
@@ -93,6 +93,7 @@ public slots:
   	void toggleSky(void);
   	void setLmrkDispBound(double bound);
   	void toggleInactive(void);
+  	void togglePoseTrack(void);
 
 signals:
 	void angles(QString text); // Signal for display angles

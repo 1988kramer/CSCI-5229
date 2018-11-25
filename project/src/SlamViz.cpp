@@ -14,7 +14,6 @@ SlamViz::SlamViz(QWidget* parent)
    th = ph = 30;      //  Set intial display angles
    asp = 1;           //  Aspect ratio
    dim = 20;          //  World dimension
-   x0 = y0 = z0 = 1;  //  Starting location
    x = y = z = 0;
    l_mouse = r_mouse = false;         //  Mouse movement
    smooth    =   1;  // Smooth/Flat shading
@@ -34,8 +33,8 @@ SlamViz::SlamViz(QWidget* parent)
    last_stamp = 0.0;
    scale_factor = 2.0;
    plane = new airplane(texture,3);
-   disp_inactive_lmrks = disp_sky = axes = false; 
-   lmrk_lwr_bound = 0.0;
+   pose_track = disp_inactive_lmrks = disp_sky = axes = false; 
+   lmrk_lwr_bound = 0.03;
    light = mode = true;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
@@ -77,6 +76,12 @@ void SlamViz::setLmrkDispBound(double bound)
 void SlamViz::toggleInactive(void)
 {
    disp_inactive_lmrks = !disp_inactive_lmrks;
+   update();
+}
+
+void SlamViz::togglePoseTrack(void)
+{
+   pose_track = !pose_track;
    update();
 }
 
@@ -256,11 +261,12 @@ void SlamViz::paintGL()
       double Ex = (-2)*dim*Sin(th)*Cos(ph);
       double Ey = (2)*dim        *Sin(ph);
       double Ez = (2)*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
+      gluLookAt(Ex+x,Ey+y,Ez+z, x,y,z, 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
    else
    {
+      glTranslated(x,y,z);
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
    }
@@ -546,6 +552,17 @@ void SlamViz::readPose()
       glm::mat4 T_mat = glm::translate(glm::mat4(1), translation);
 
       cur_pose.T_WS = T_mat * rotation_mat;
+      if (pose_track)
+      {
+         x = translation[0];
+         y = translation[2];
+         z = -translation[1];
+      }
+      else
+      {
+         x = y = z = 0;
+      }
+      emit dimen(QString::number(x));
    }
 }
 
