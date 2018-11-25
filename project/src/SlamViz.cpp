@@ -266,9 +266,10 @@ void SlamViz::paintGL()
    //  Orthogonal - set world orientation
    else
    {
-      glTranslated(x,y,z);
+      
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
+      glTranslated(-x,-y,-z);
    }
    if (disp_sky)
       Sky(3.0*dim);
@@ -318,7 +319,8 @@ void SlamViz::paintGL()
    glLightfv(GL_LIGHT0,GL_DIFFUSE ,Diffuse);
    glLightfv(GL_LIGHT0,GL_SPECULAR,Specular);
    glLightfv(GL_LIGHT0,GL_POSITION,Position);
-
+   //if (!mode && pose_track)
+   //   glTranslated(-x,-y,-z);
    glPushMatrix();
    //  Draw scene
    glRotated(-90.0,1.0,0.0,0.0);
