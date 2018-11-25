@@ -261,7 +261,8 @@ void SlamViz::paintGL()
       double Ex = (-2)*dim*Sin(th)*Cos(ph);
       double Ey = (2)*dim        *Sin(ph);
       double Ez = (2)*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex+x,Ey+y,Ez+z, x,y,z, 0,Cos(ph),0);
+      //gluLookAt(Ex+x,Ey+y,Ez+z, x,y,z, 0,Cos(ph),0);
+      gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
    else
@@ -269,8 +270,9 @@ void SlamViz::paintGL()
       
       glRotatef(ph,1,0,0);
       glRotatef(th,0,1,0);
-      glTranslated(-x,-y,-z);
+      
    }
+   glTranslated(-x,-y,-z);
    if (disp_sky)
       Sky(3.0*dim);
    else
