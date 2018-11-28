@@ -22,20 +22,18 @@ SlamViz::SlamViz(QWidget* parent)
    specular  =   0;  // Specular intensity (%)
    distance  =   5;  // Light distance
    zh        =  90;  // Light azimuth
-   ylight = 0;
    fov = 55;
    local     =   0;  // Local Viewer Model
    emission  =   0;  // Emission intensity (%)
    shiny   =   1;  // Shininess (value)
-   inc       =  10;  // Ball increment
    cur_time = 0.0;
    last_time = 0.0;
    last_stamp = 0.0;
    scale_factor = 2.0;
    plane = new airplane(texture,3);
-   pose_track = disp_inactive_lmrks = disp_sky = axes = false; 
+   light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
-   light = mode = true;
+   mode = true;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
    timer->start(16);
@@ -91,6 +89,12 @@ void SlamViz::togglePoseTrack(void)
 void SlamViz::toggleLight(void)
 {
    light = !light;
+   update();
+}
+
+void SlamViz::togglePrevPoses(void)
+{
+   disp_prev_poses = !disp_prev_poses;
    update();
 }
 
@@ -169,12 +173,7 @@ void SlamViz::mouseMoveEvent(QMouseEvent* e)
       th = (th+d.x())%360;      //  Translate x movement to azimuth
       ph = (ph+d.y())%360;      //  Translate y movement to elevation
    }
-   // translate field of view if left mouse
-   if (l_mouse)
-   {
-      x += (d.x()*Cos(th)*Sin(ph) + d.y()*Sin(th)*Cos(ph))/ 10.0;
-      y -= (d.y()*Sin(th) + d.x()*Sin(ph))/ 10.0;
-   }
+
    pos = e->pos();           //  Remember new location
    update();                 //  Request redisplay
 }
@@ -277,7 +276,7 @@ void SlamViz::paintGL()
    if (disp_sky)
       Sky(3.0*dim);
    else
-      displayGrid(10);
+      displayGrid(5);
 
    //  Flat or smooth shading
    glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
@@ -292,7 +291,7 @@ void SlamViz::paintGL()
    if (light)
    {
       Position[0] = 1.5*float(distance*Cos(zh));
-      Position[1] = 1.5*float(ylight);
+      Position[1] = 0.0;
       Position[2] = 1.5*float(distance*Sin(zh));
       Position[3] = 1.0;
    }
@@ -365,14 +364,16 @@ void SlamViz::paintGL()
          }
       }
    }
-
-   for (int i = 0; i < prev_poses.size(); i++)
+   if (disp_prev_poses)
    {
-      glPushMatrix();
-      glRotated(-90.0,1.0,0.0,0.0);
-      glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
-      drawAxes(0.5,false);
-      glPopMatrix();
+      for (int i = 0; i < prev_poses.size(); i++)
+      {
+         glPushMatrix();
+         glRotated(-90.0,1.0,0.0,0.0);
+         glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
+         drawAxes(0.5,false);
+         glPopMatrix();
+      }
    }
 
    //  Draw axes - no lighting from here on
@@ -405,6 +406,7 @@ void SlamViz::Vertex(double th,double ph)
 void SlamViz::ball(double x,double y,double z,double r)
 {
    int th,ph;
+   int inc = 30;
    float yellow[] = {1.0,1.0,0.0,1.0};
    float Emission[]  = {0.0,0.0,float(0.01*emission),1.0};
    //  Save transformation
@@ -624,15 +626,18 @@ void SlamViz::readLmrks()
 void SlamViz::drawAxes(double len, bool draw_labels)
 {
    glDisable(GL_LIGHTING);
-   glColor3f(1,1,1);
    glBegin(GL_LINES);
+   glColor3d(1.0,0.0,0.0);
    glVertex3d(0.0,0.0,0.0);
    glVertex3d(len,0.0,0.0);
+   glColor3d(0.0,1.0,0.0);
    glVertex3d(0.0,0.0,0.0);
    glVertex3d(0.0,len,0.0);
+   glColor3d(0.0,0.0,1.0);
    glVertex3d(0.0,0.0,0.0);
    glVertex3d(0.0,0.0,len);
    glEnd();
+   glColor3d(1.0,1.0,1.0);
    if (draw_labels)
    {
       renderText(len, 0.0, 0.0, QString("X"));
