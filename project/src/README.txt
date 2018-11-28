@@ -2,9 +2,10 @@ SlamViz
 Author: Andrew Kramer
 Date: 11/28/2018
 
-Visualizer program for a sparse visual-inertial SLAM system. Shows the current and previous poses of the robot and the landmarks being actively
-tracked by the robot. It currently is only able to run from logged poses
-and landmarks. It provides the following options to the user:
+Visualizer program for a sparse visual-inertial SLAM system. Shows the current 
+and previous poses of the robot and the landmarks being actively tracked by 
+the robot. It currently is only able to run from logged poses and landmarks. 
+It provides the following options to the user:
 
 - Reset the view scale, azimuth and elevation
 - Change projection between perspective and orthogonal
