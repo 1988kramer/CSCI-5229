@@ -23,9 +23,15 @@ and landmarks. It provides the following options to the user:
   the robot's current estimated location
 
 
-Building:
+To Build:
 
 Run qmake and then make.
+
+
+To Run:
+
+./SlamViz
+No input files need to be specified as these are currently hardcoded.
 
 
 Progress Assessment:
@@ -46,6 +52,8 @@ Optional To Do:
 
 - Add option to adjust playback speed
 - Add cockpit/first-person view
+- Use shader to render landmarks
+  - currently bogs down if all landmarks are displayed, even with low poly-count landmarks
 
 
 Attributions:

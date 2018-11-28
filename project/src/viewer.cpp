@@ -28,21 +28,22 @@ Viewer::Viewer(QWidget* parent)
    //QLabel* axes = new QLabel();
 
    //  Pushbutton to reset view angle
-   QPushButton* reset = new QPushButton("Reset");
-   QPushButton* display = new QPushButton("Display");
-   QPushButton* lighting = new QPushButton("Lighting");
-   QCheckBox* axes = new QCheckBox("Axes");
+   QPushButton* reset = new QPushButton("Reset View");
+   QCheckBox* display = new QCheckBox("Orthogonal");
+   QCheckBox* lighting = new QCheckBox("Orbit Light");
+   QCheckBox* axes = new QCheckBox("Show Axes");
    QPushButton* texture = new QPushButton("Texture");
-   QCheckBox* sky_button = new QCheckBox("Sky");
-   QCheckBox* inactive = new QCheckBox("inactive lmrks");
+   QCheckBox* sky_button = new QCheckBox("Show Skybox");
+   QCheckBox* inactive = new QCheckBox("Show Inactive Lmrks");
    QDoubleSpinBox* land_lower = new QDoubleSpinBox();
-   QCheckBox* track_pose = new QCheckBox("Track Pose");
+   QCheckBox* track_pose = new QCheckBox("Track Pose With Cam");
+   QCheckBox* prev_poses = new QCheckBox("Show Prev Poses");
 
-   QLabel* dim = new QLabel();
+   // QLabel* dim = new QLabel();
 
    land_lower->setDecimals(2);
    land_lower->setSingleStep(0.01);
-   land_lower->setRange(0.0,1.0);
+   land_lower->setRange(0.01,1.0);
    land_lower->setValue(0.03);
 
    //  Connect valueChanged() signals to Lorenz slots
@@ -55,12 +56,13 @@ Viewer::Viewer(QWidget* parent)
    connect(inactive, SIGNAL(clicked(void)), slam_viz, SLOT(toggleInactive(void)));
    connect(land_lower, SIGNAL(valueChanged(double)), slam_viz, SLOT(setLmrkDispBound(double)));
    connect(track_pose, SIGNAL(clicked(void)), slam_viz, SLOT(togglePoseTrack(void)));
+   connect(prev_poses, SIGNAL(clicked(void)), slam_viz, SLOT(togglePrevPoses(void)));
    //  Connect lorenz signals to display widgets
-   connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
+   // connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
 
 
    //  Connect combo box to setPAR in myself
-   //connect(preset , SIGNAL(currentIndexChanged(const QString&)), this , SLOT(setPAR(const QString&)));
+   // connect(preset , SIGNAL(currentIndexChanged(const QString&)), this , SLOT(setPAR(const QString&)));
    //  Set layout of child widgets
    QGridLayout* layout = new QGridLayout;
    layout->setColumnStretch(0,100);
@@ -74,16 +76,17 @@ Viewer::Viewer(QWidget* parent)
    QGroupBox* dspbox = new QGroupBox("Display");
    QGridLayout* dsplay = new QGridLayout;
    dsplay->addWidget(reset,1,0);
-   dsplay->addWidget(display,2,0);
-   dsplay->addWidget(lighting,3,0);
-   dsplay->addWidget(axes,4,0);
-   dsplay->addWidget(texture,5,0);
-   dsplay->addWidget(sky_button,6,0);
-   dsplay->addWidget(new QLabel("min lmrk qual"),7,0);
-   dsplay->addWidget(land_lower,7,1);
-   dsplay->addWidget(dim,8,0);
-   dsplay->addWidget(inactive,9,0);
-   dsplay->addWidget(track_pose,10,0);
+   dsplay->addWidget(display,4,0);
+   dsplay->addWidget(lighting,5,0);
+   dsplay->addWidget(axes,6,0);
+   dsplay->addWidget(texture,2,0);
+   dsplay->addWidget(sky_button,7,0);
+   dsplay->addWidget(new QLabel("Minimum Lmrk Qual"),3,1);
+   dsplay->addWidget(land_lower,3,0);
+   // dsplay->addWidget(dim,8,0);
+   dsplay->addWidget(inactive,8,0);
+   dsplay->addWidget(track_pose,9,0);
+   dsplay->addWidget(prev_poses,10,0);
    dspbox->setLayout(dsplay);
    layout->addWidget(dspbox,2,1);
 

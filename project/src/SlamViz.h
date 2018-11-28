@@ -54,6 +54,7 @@ private:
 	bool disp_sky;
 	bool disp_inactive_lmrks;
 	bool pose_track;
+	bool disp_prev_poses;
 	double lmrk_lwr_bound;
 	QPoint pos;
 	double dim;
@@ -87,13 +88,14 @@ public slots:
 	void toggleAxes(void);
 	void toggleLight(void);
 	void toggleDisplay(void);
-  	void setDIM(double DIM);    //  Slot to set dim
-  	void switchTexture(void);
-  	void timerEvent(void);
-  	void toggleSky(void);
-  	void setLmrkDispBound(double bound);
-  	void toggleInactive(void);
-  	void togglePoseTrack(void);
+  void setDIM(double DIM);    //  Slot to set dim
+  void switchTexture(void);
+  void timerEvent(void);
+  void toggleSky(void);
+  void setLmrkDispBound(double bound);
+  void toggleInactive(void);
+  void togglePoseTrack(void);
+  void togglePrevPoses(void);
 
 signals:
 	void angles(QString text); // Signal for display angles
