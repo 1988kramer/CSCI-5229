@@ -21,6 +21,7 @@ and landmarks. It provides the following options to the user:
     landmark's location
 - Toggle whether the camera view is centered on the origin or centered on 
   the robot's current estimated location
+- Toggle the display of previous poses
 
 
 To Build:
