@@ -69,7 +69,7 @@ private:
 			local, emission, shiny, inc;
 	airplane* plane;
 	QOpenGLTexture *texture[3];
-	QOpenGLTexture *sky[3];
+	QOpenGLTexture *sky;
 	QTimer* timer;
 	std::ifstream* pose_file;
 	std::ifstream* lmrk_file;

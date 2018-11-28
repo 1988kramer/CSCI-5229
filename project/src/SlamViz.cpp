@@ -126,6 +126,7 @@ void SlamViz::reset(void)
 void SlamViz::setDIM(double DIM)
 {
    dim = DIM;    //  Set parameter
+   emit dimen(QString::number(dim));
    project();
    update();     //  Request redisplay
 }
@@ -207,9 +208,7 @@ void SlamViz::initializeGL()
    texture[0] = new QOpenGLTexture(QImage(QString("yellow_fabric.bmp")));
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
-   sky[0] = new QOpenGLTexture(QImage(QString("sky0.bmp")));
-   sky[1] = new QOpenGLTexture(QImage(QString("sky1.bmp")));
-   sky[2] = new QOpenGLTexture(QImage(QString("sky2.jpg")));
+   sky = new QOpenGLTexture(QImage(QString("sky2.jpg")));
 }
 
 void SlamViz::timerEvent(void)
@@ -272,7 +271,9 @@ void SlamViz::paintGL()
       glRotatef(th,0,1,0);
       
    }
+   // track pose if pose tracking enabled
    glTranslated(-x,-y,-z);
+
    if (disp_sky)
       Sky(3.0*dim);
    else
@@ -489,7 +490,7 @@ void SlamViz::Sky(double D)
    glEnable(GL_TEXTURE_2D);
 
    //  Sides
-   sky[2]->bind();
+   sky->bind();
    glBegin(GL_QUADS);
    glTexCoord2f(0.25,0.6667); glVertex3f(-D,-D,-D);
    glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
@@ -566,7 +567,6 @@ void SlamViz::readPose()
       {
          x = y = z = 0;
       }
-      emit dimen(QString::number(x));
    }
 }
 
