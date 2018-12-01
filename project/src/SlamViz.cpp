@@ -14,10 +14,8 @@ SlamViz::SlamViz(QWidget* parent)
    th = ph = 30;      //  Set intial display angles
    asp = 1;           //  Aspect ratio
    dim = 20;          //  World dimension
-   Ylight = 3.0*dim;
    x = y = z = 0;
    l_mouse = r_mouse = false;         //  Mouse movement
-   smooth    =   1;  // Smooth/Flat shading
    ambient   =  30;  // Ambient intensity (%)
    diffuse   = 100;  // Diffuse intensity (%)
    specular  =   0;  // Specular intensity (%)
@@ -123,7 +121,7 @@ void SlamViz::reset(void)
 void SlamViz::setDIM(double DIM)
 {
    dim = DIM;    //  Set parameter
-   emit dimen(QString::number(dim));
+   //emit dimen(QString::number(dim));
    project();
    update();     //  Request redisplay
 }
@@ -183,7 +181,6 @@ void SlamViz::wheelEvent(QWheelEvent* e)
    else if (dim>1)
       setDIM(dim-1);
    //  Signal to change dimension spinbox
-   Ylight = 3.0*dim;
 }
 
 /*******************************************************************/
@@ -196,6 +193,7 @@ void SlamViz::wheelEvent(QWheelEvent* e)
 void SlamViz::initializeGL()
 {
    glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
+   glEnable(GL_CULL_FACE);
    setMouseTracking(true);  //  Ask for mouse events
    texture[0] = new QOpenGLTexture(QImage(QString("yellow_fabric.bmp")));
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
@@ -241,14 +239,16 @@ void SlamViz::paintGL()
 {
    //  Clear screen and Z-buffer
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   glEnable(GL_DEPTH_TEST);
-   glEnable(GL_CULL_FACE);
+   glDisable(GL_LIGHTING);
 
    //  Reset transformations
    glLoadIdentity();
-   //  Set rotation
-   //glRotated(ph , 1,0,0);
-   //glRotated(th , 0,1,0);
+
+   QSize size = this->size();
+   emit dimen(QString::number(this->width()));
+
+
+   glShadeModel(GL_FLAT);
 
    // set projection
    if (mode)
@@ -257,6 +257,9 @@ void SlamViz::paintGL()
       double Ey = (2)*dim        *Sin(ph);
       double Ez = (2)*dim*Cos(th)*Cos(ph);
       //gluLookAt(Ex+x,Ey+y,Ez+z, x,y,z, 0,Cos(ph),0);
+      project();
+      glViewport(0,0,size.width(),size.height());
+      //glViewport(0,0,640,480);
       gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
    }
    //  Orthogonal - set world orientation
@@ -271,24 +274,17 @@ void SlamViz::paintGL()
    glTranslated(-x,-y,-z);
 
    
-
-   //  Flat or smooth shading
-   glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
-
+   /*
    //  Translate intensity to color vectors
    float Ambient[]   = {float(0.01*ambient),float(0.01*ambient),float(0.01*ambient),1.0};
    float Diffuse[]   = {float(0.01*diffuse),float(0.01*diffuse),float(0.01*diffuse),1.0};
    float Specular[]  = {float(0.01*specular),float(0.01*specular),float(0.01*specular),1.0};
-   
-   //  switch light from at sun position to orbiting
-   float Position[4];
-   Position[0] = float(3.0*dim);
-   Position[1] = Ylight;
-   Position[2] = 0.0; 
-   Position[3] = 1.0;
-
+   */
+   //  draw ball at light position
    glColor3f(1,1,1);
-   ball(Position[0],Position[1],Position[2] , 0.1);
+   ball(float(3.0*dim),float(3.0*dim),0.0 , 0.1);
+
+   /*
    //  OpenGL should normalize normal vectors
    glEnable(GL_NORMALIZE);
    //  Enable lighting
@@ -307,16 +303,44 @@ void SlamViz::paintGL()
    glLightfv(GL_LIGHT0,GL_POSITION,Position);
    //if (!mode && pose_track)
    //   glTranslated(-x,-y,-z);
+   */
+   int id;
+   id = shadow_shader.uniformLocation("tex");
+   if (id >= 0) glUniform1i(id, 0);
+   id = shadow_shader.uniformLocation("depth");
+   if (id >= 0) glUniform1i(id, 1);
+
+   glActiveTexture(GL_TEXTURE1);
+   glTexGendv(GL_S, GL_EYE_PLANE, Svec);
+   glTexGendv(GL_T, GL_EYE_PLANE, Tvec);
+   glTexGendv(GL_R, GL_EYE_PLANE, Rvec);
+   glTexGendv(GL_Q, GL_EYE_PLANE, Qvec);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+   glActiveTexture(GL_TEXTURE0);
+
    Scene(1);
-
-   //  Draw axes - no lighting from here on
+   /*
+   if (false)
+   {
+      QSize size = this->size();
+      int n, ix=size.width()/2+5,iy=size.height()-5;
+      project(0,asp/2,1);
+      glViewport(size.width()/2+1,0,size.width()/2,size.height());
+      glActiveTexture(GL_TEXTURE1);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_NONE);
+      glEnable(GL_TEXTURE_2D);
+      glColor3f(1.0f,1.0f,1.0f);
+      glBegin(GL_QUADS);
+      glMultiTexCoord2f(GL_TEXTURE1,0,0);glVertex2f(-1,-1);
+      glMultiTexCoord2f(GL_TEXTURE1,1,0);glVertex2f(+1,-1);
+      glMultiTexCoord2f(GL_TEXTURE1,1,1);glVertex2f(+1,+1);
+      glMultiTexCoord2f(GL_TEXTURE1,0,1);glVertex2f(-1,+1);
+      glEnd();
+      glDisable(GL_TEXTURE_2D);
+      glActiveTexture(GL_TEXTURE0);
+   }
+   */
    
-
-   //
-   //  Emit signal with display angles and dimensions
-   //
-   //emit angles("th,ph= "+QString::number(th)+","+QString::number(ph));
-
    //  Done
    glFlush();
 }
@@ -742,9 +766,9 @@ void SlamViz::shadowMap(void)
 void SlamViz::Light(int light)
 {
    //  Set light position
-   Lpos[0] = 2*Cos(zh);
-   Lpos[1] = Ylight;
-   Lpos[2] = 2*Sin(zh);
+   Lpos[0] = 3.0*dim;
+   Lpos[1] = 3.0*dim;
+   Lpos[2] = 0;
    Lpos[3] = 1;
 
    //  Enable lighting

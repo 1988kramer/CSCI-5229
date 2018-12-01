@@ -72,7 +72,6 @@ private:
 	double Rvec[4];
 	double Qvec[4];
 	float Lpos[4];
-	float Ylight;
 	int smooth;
 	int ambient, diffuse, specular, distance, zh,
 			local, emission, shiny, inc, shadowdim;
