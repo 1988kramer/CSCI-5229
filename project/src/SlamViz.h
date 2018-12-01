@@ -10,6 +10,7 @@
 #include <QGLWidget>
 #include <QString>
 #include <QOpenGLTexture>
+#include <QOpenGLShaderProgram>
 #include "airplane.h"
 #include "CSCIx229.h"
 #include <iostream>
@@ -77,6 +78,7 @@ private:
 	std::vector<Pose> prev_poses;
 	std::map<unsigned long, Landmark> lmrks;
 	std::map<unsigned long, Landmark> inactive_lmrks;
+	QOpenGLShaderProgram shadow_shader;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -117,6 +119,7 @@ private:
 	void readLmrks();
 	void drawAxes(double len, bool draw_labels);
 	void addToPrevPoses();
+	void initShaders();
 };
 
 #endif

@@ -673,3 +673,16 @@ void SlamViz::addToPrevPoses()
          prev_poses.push_back(cur_pose);
    }
 }
+
+void SlamViz::initShaders()
+{
+   // compile shader for shadowing
+   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, "shadow.vert"));
+      close();
+   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, "shadow.frag"));
+      close();
+   if (!shadow_shader.link())
+      close();
+   if (!shadow_shader.bind())
+      close();
+}
