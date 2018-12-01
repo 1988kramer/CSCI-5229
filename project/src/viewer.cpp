@@ -30,7 +30,6 @@ Viewer::Viewer(QWidget* parent)
    //  Pushbutton to reset view angle
    QPushButton* reset = new QPushButton("Reset View");
    QCheckBox* display = new QCheckBox("Orthogonal");
-   QCheckBox* lighting = new QCheckBox("Orbit Light");
    QCheckBox* axes = new QCheckBox("Show Axes");
    QPushButton* texture = new QPushButton("Texture");
    QCheckBox* sky_button = new QCheckBox("Show Skybox");
@@ -49,7 +48,6 @@ Viewer::Viewer(QWidget* parent)
    //  Connect valueChanged() signals to Lorenz slots
    connect(reset, SIGNAL(clicked(void)), slam_viz, SLOT(reset(void)));
    connect(display, SIGNAL(clicked(void)), slam_viz, SLOT(toggleDisplay(void)));
-   connect(lighting, SIGNAL(clicked(void)), slam_viz, SLOT(toggleLight(void)));
    connect(axes, SIGNAL(clicked(void)), slam_viz, SLOT(toggleAxes(void)));
    connect(texture, SIGNAL(clicked(void)), slam_viz, SLOT(switchTexture(void)));
    connect(sky_button, SIGNAL(clicked(void)), slam_viz, SLOT(toggleSky(void)));
@@ -77,7 +75,6 @@ Viewer::Viewer(QWidget* parent)
    QGridLayout* dsplay = new QGridLayout;
    dsplay->addWidget(reset,1,0);
    dsplay->addWidget(display,4,0);
-   dsplay->addWidget(lighting,5,0);
    dsplay->addWidget(axes,6,0);
    dsplay->addWidget(texture,2,0);
    dsplay->addWidget(sky_button,7,0);

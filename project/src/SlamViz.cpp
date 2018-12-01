@@ -14,6 +14,7 @@ SlamViz::SlamViz(QWidget* parent)
    th = ph = 30;      //  Set intial display angles
    asp = 1;           //  Aspect ratio
    dim = 20;          //  World dimension
+   Ylight = 3.0*dim;
    x = y = z = 0;
    l_mouse = r_mouse = false;         //  Mouse movement
    smooth    =   1;  // Smooth/Flat shading
@@ -30,6 +31,7 @@ SlamViz::SlamViz(QWidget* parent)
    last_time = 0.0;
    last_stamp = 0.0;
    scale_factor = 2.0;
+   framebuf = 0;
    plane = new airplane(texture,3);
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
@@ -80,15 +82,6 @@ void SlamViz::toggleInactive(void)
 void SlamViz::togglePoseTrack(void)
 {
    pose_track = !pose_track;
-   update();
-}
-
-//
-// toggle lighting
-//
-void SlamViz::toggleLight(void)
-{
-   light = !light;
    update();
 }
 
@@ -190,7 +183,7 @@ void SlamViz::wheelEvent(QWheelEvent* e)
    else if (dim>1)
       setDIM(dim-1);
    //  Signal to change dimension spinbox
-   //emit dimen("dimension: " + QString::number(dim));
+   Ylight = 3.0*dim;
 }
 
 /*******************************************************************/
@@ -208,6 +201,10 @@ void SlamViz::initializeGL()
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
    sky = new QOpenGLTexture(QImage(QString("sky2.jpg")));
+
+   initShaders();
+
+   initMap();
 }
 
 void SlamViz::timerEvent(void)
@@ -273,10 +270,7 @@ void SlamViz::paintGL()
    // track pose if pose tracking enabled
    glTranslated(-x,-y,-z);
 
-   if (disp_sky)
-      Sky(3.0*dim);
-   else
-      displayGrid(5);
+   
 
    //  Flat or smooth shading
    glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
@@ -288,20 +282,10 @@ void SlamViz::paintGL()
    
    //  switch light from at sun position to orbiting
    float Position[4];
-   if (light)
-   {
-      Position[0] = 1.5*float(distance*Cos(zh));
-      Position[1] = 0.0;
-      Position[2] = 1.5*float(distance*Sin(zh));
-      Position[3] = 1.0;
-   }
-   else
-   {
-      Position[0] = float(3.0*dim);
-      Position[1] = float(3.0*dim);
-      Position[2] = 0.0; 
-      Position[3] = 1.0;
-   }
+   Position[0] = float(3.0*dim);
+   Position[1] = Ylight;
+   Position[2] = 0.0; 
+   Position[3] = 1.0;
 
    glColor3f(1,1,1);
    ball(Position[0],Position[1],Position[2] , 0.1);
@@ -323,62 +307,10 @@ void SlamViz::paintGL()
    glLightfv(GL_LIGHT0,GL_POSITION,Position);
    //if (!mode && pose_track)
    //   glTranslated(-x,-y,-z);
-   glPushMatrix();
-   //  Draw scene
-   glRotated(-90.0,1.0,0.0,0.0);
-   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
-   plane->drawAirplane(0,0,0,
-                       0,0,1,
-                       1,0,0);
-   glPopMatrix();
-
-   for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
-      it != lmrks.end(); it++)
-   {
-      if (it->second.quality >= lmrk_lwr_bound)
-      {
-         glPushMatrix();
-         glRotated(-90.0,1.0,0.0,0.0);
-         double x = it->second.point[0];
-         double y = it->second.point[1];
-         double z = it->second.point[2];
-         ball(x,y,z,scale_factor*it->second.quality);
-         glPopMatrix();
-      }
-   }
-
-   if (disp_inactive_lmrks)
-   {
-      for (std::map<unsigned long, Landmark>::iterator it = inactive_lmrks.begin();
-         it != inactive_lmrks.end(); it++)
-      {
-         if (it->second.quality >= lmrk_lwr_bound)
-         {
-            glPushMatrix();
-            glRotated(-90.0,1.0,0.0,0.0);
-            double x = it->second.point[0];
-            double y = it->second.point[1];
-            double z = it->second.point[2];
-            ball(x,y,z,0.05);
-            glPopMatrix();
-         }
-      }
-   }
-   if (disp_prev_poses)
-   {
-      for (int i = 0; i < prev_poses.size(); i++)
-      {
-         glPushMatrix();
-         glRotated(-90.0,1.0,0.0,0.0);
-         glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
-         drawAxes(0.5,false);
-         glPopMatrix();
-      }
-   }
+   Scene(1);
 
    //  Draw axes - no lighting from here on
-   if (axes)
-      drawAxes(2.0, true);
+   
 
    //
    //  Emit signal with display angles and dimensions
@@ -682,12 +614,233 @@ void SlamViz::addToPrevPoses()
 void SlamViz::initShaders()
 {
    // compile shader for shadowing
-   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, "shadow.vert"));
+   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shadow.vert"));
       close();
-   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, "shadow.frag"));
+   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shadow.frag"));
       close();
    if (!shadow_shader.link())
       close();
    if (!shadow_shader.bind())
       close();
 }
+
+void SlamViz::initMap()
+{
+   unsigned int shadowtex;
+   int n;
+
+   // make sure multitextures are supported
+   glGetIntegerv(GL_MAX_TEXTURE_UNITS, &n);
+   if (n<2) close();
+
+   // get max texture buffer size
+   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &shadowdim);
+   // limit texture size to maximum buffer size
+   glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE,&n);
+   if (shadowdim > n) shadowdim = n;
+   // limit texture size to 2048 for performance
+   if (shadowdim > 2048) shadowdim = 2048;
+   if (shadowdim < 512) close(); // shadow dimension too small
+
+   // do shadow textures in multitexture 1
+   glActiveTexture(GL_TEXTURE1);
+   glGenTextures(1,&shadowtex);
+   glBindTexture(GL_TEXTURE_2D, shadowtex);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowdim, shadowdim, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+
+   //  Set texture mapping to clamp and linear interpolation
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+
+   //  Set automatic texture generation mode to Eye Linear
+   glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+   glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+   glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+   glTexGeni(GL_Q,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+
+   // Switch back to default textures
+   glActiveTexture(GL_TEXTURE0);
+
+   // Attach shadow texture to frame buffer
+   glGenFramebuffers(1,&framebuf);
+   glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
+   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowtex, 0);
+   //  Don't write or read to visible color buffer
+   glDrawBuffer(GL_NONE);
+   glReadBuffer(GL_NONE);
+   //  Make sure this all worked
+   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) Fatal("Error setting up frame buffer\n");
+   glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+   shadowMap();
+}
+
+void SlamViz::shadowMap(void)
+{
+   double Lmodel[16];
+   double Lproj[16];
+   double Tproj[16];
+   double Dim = 2.0;
+   double Ldist;
+
+   glPushMatrix();
+   glPushAttrib(GL_TRANSFORM_BIT|GL_ENABLE_BIT);
+   glShadeModel(GL_FLAT);
+   glColorMask(0,0,0,0);
+   glEnable(GL_POLYGON_OFFSET_FILL);
+
+   Light(0);
+
+   Ldist = sqrt(Lpos[0]*Lpos[0] + Lpos[1]*Lpos[1] + Lpos[2]*Lpos[2]);
+   if(Ldist < 1.1*dim) Ldist = 1.1*dim;
+
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   gluPerspective(114.6*atan(Dim/Ldist),1,Ldist-Dim,Ldist+Dim);
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+   gluLookAt(Lpos[0],Lpos[1],Lpos[2], 0,0,0, 0,1,0);
+   glViewport(0,0,shadowdim,shadowdim);
+
+   glBindFramebuffer(GL_FRAMEBUFFER, framebuf);
+   glClear(GL_DEPTH_BUFFER_BIT);
+
+   Scene(0);
+
+   glGetDoublev(GL_PROJECTION_MATRIX,Lproj);
+   glGetDoublev(GL_MODELVIEW_MATRIX,Lmodel);
+
+   // Set up texture matrix for shadow map projection,
+   // which will be rolled into the eye linear
+   // texture coordinate generation plane equations
+   glLoadIdentity();
+   glTranslated(0.5,0.5,0.5);
+   glScaled(0.5,0.5,0.5);
+   glMultMatrixd(Lproj);
+   glMultMatrixd(Lmodel);
+
+   // Retrieve result and transpose to get the s, t, r, and q rows for plane equations
+   glGetDoublev(GL_MODELVIEW_MATRIX,Tproj);
+   Svec[0] = Tproj[0];    Tvec[0] = Tproj[1];    Rvec[0] = Tproj[2];    Qvec[0] = Tproj[3];
+   Svec[1] = Tproj[4];    Tvec[1] = Tproj[5];    Rvec[1] = Tproj[6];    Qvec[1] = Tproj[7];
+   Svec[2] = Tproj[8];    Tvec[2] = Tproj[9];    Rvec[2] = Tproj[10];   Qvec[2] = Tproj[11];
+   Svec[3] = Tproj[12];   Tvec[3] = Tproj[13];   Rvec[3] = Tproj[14];   Qvec[3] = Tproj[15];
+
+   // Restore normal drawing state
+   glShadeModel(GL_SMOOTH);
+   glColorMask(1,1,1,1);
+   glDisable(GL_POLYGON_OFFSET_FILL);
+   glPopAttrib();
+   glPopMatrix();
+   glBindFramebuffer(GL_FRAMEBUFFER,0);
+}
+
+void SlamViz::Light(int light)
+{
+   //  Set light position
+   Lpos[0] = 2*Cos(zh);
+   Lpos[1] = Ylight;
+   Lpos[2] = 2*Sin(zh);
+   Lpos[3] = 1;
+
+   //  Enable lighting
+   if (light)
+   {
+      float Med[]  = {0.3,0.3,0.3,1.0};
+      float High[] = {1.0,1.0,1.0,1.0};
+      //  Enable lighting with normalization
+      glEnable(GL_LIGHTING);
+      glEnable(GL_NORMALIZE);
+      //  glColor sets ambient and diffuse color materials
+      glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+      glEnable(GL_COLOR_MATERIAL);
+      //  Enable light 0
+      glEnable(GL_LIGHT0);
+      glLightfv(GL_LIGHT0,GL_POSITION,Lpos);
+      glLightfv(GL_LIGHT0,GL_AMBIENT,Med);
+      glLightfv(GL_LIGHT0,GL_DIFFUSE,High);
+   }
+   else
+   {
+      glDisable(GL_LIGHTING);
+      glDisable(GL_COLOR_MATERIAL);
+      glDisable(GL_NORMALIZE);
+   }
+}
+
+void SlamViz::Scene(int light)
+{
+   Light(light);
+
+   glPushMatrix();
+   //  Draw scene
+   glRotated(-90.0,1.0,0.0,0.0);
+   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
+   plane->drawAirplane(0,0,0,
+                       0,0,1,
+                       1,0,0);
+   glPopMatrix();
+
+   for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
+      it != lmrks.end(); it++)
+   {
+      if (it->second.quality >= lmrk_lwr_bound)
+      {
+         glPushMatrix();
+         glRotated(-90.0,1.0,0.0,0.0);
+         double x = it->second.point[0];
+         double y = it->second.point[1];
+         double z = it->second.point[2];
+         ball(x,y,z,scale_factor*it->second.quality);
+         glPopMatrix();
+      }
+   }
+
+   if (disp_inactive_lmrks)
+   {
+      for (std::map<unsigned long, Landmark>::iterator it = inactive_lmrks.begin();
+         it != inactive_lmrks.end(); it++)
+      {
+         if (it->second.quality >= lmrk_lwr_bound)
+         {
+            glPushMatrix();
+            glRotated(-90.0,1.0,0.0,0.0);
+            double x = it->second.point[0];
+            double y = it->second.point[1];
+            double z = it->second.point[2];
+            ball(x,y,z,0.05);
+            glPopMatrix();
+         }
+      }
+   }
+
+   // prior poses, axes and skybox don't cast shadows, so return
+   // here if not doing lighting
+   if (!light) return;
+   else glDisable(GL_TEXTURE_2D);
+
+   if (axes)
+      drawAxes(2.0, true);
+
+   if (disp_sky)
+      Sky(3.0*dim);
+   else
+      displayGrid(5);
+
+   if (disp_prev_poses)
+   {
+      for (int i = 0; i < prev_poses.size(); i++)
+      {
+         glPushMatrix();
+         glRotated(-90.0,1.0,0.0,0.0);
+         glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
+         drawAxes(0.5,false);
+         glPopMatrix();
+      }
+   }
+}
+

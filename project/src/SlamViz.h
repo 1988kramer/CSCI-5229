@@ -11,6 +11,7 @@
 #include <QString>
 #include <QOpenGLTexture>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLFunctions>
 #include "airplane.h"
 #include "CSCIx229.h"
 #include <iostream>
@@ -66,9 +67,16 @@ private:
 	double last_time;
 	double last_stamp;
 	double scale_factor;
+	double Svec[4];
+	double Tvec[4];
+	double Rvec[4];
+	double Qvec[4];
+	float Lpos[4];
+	float Ylight;
 	int smooth;
 	int ambient, diffuse, specular, distance, zh,
-			local, emission, shiny, inc;
+			local, emission, shiny, inc, shadowdim;
+	unsigned int framebuf;
 	airplane* plane;
 	QOpenGLTexture *texture[3];
 	QOpenGLTexture *sky;
@@ -88,7 +96,6 @@ public:
 public slots:
 	void reset(void);  // Reset view angles and zoom 
 	void toggleAxes(void);
-	void toggleLight(void);
 	void toggleDisplay(void);
   void setDIM(double DIM);    //  Slot to set dim
   void switchTexture(void);
@@ -122,6 +129,10 @@ private:
 	void drawAxes(double len, bool draw_labels);
 	void addToPrevPoses();
 	void initShaders();
+	void initMap();
+	void shadowMap(void);
+	void Light(int light);
+	void Scene(int light);
 };
 
 #endif
