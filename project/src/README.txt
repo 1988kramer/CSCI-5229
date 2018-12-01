@@ -2,9 +2,10 @@ SlamViz
 Author: Andrew Kramer
 Date: 11/28/2018
 
-Visualizer program for a sparse visual-inertial SLAM system. Shows the current and previous poses of the robot and the landmarks being actively
-tracked by the robot. It currently is only able to run from logged poses
-and landmarks. It provides the following options to the user:
+Visualizer program for a sparse visual-inertial SLAM system. Shows the current 
+and previous poses of the robot and the landmarks being actively tracked by 
+the robot. It currently is only able to run from logged poses and landmarks. 
+It provides the following options to the user:
 
 - Reset the view scale, azimuth and elevation
 - Change projection between perspective and orthogonal
@@ -21,11 +22,18 @@ and landmarks. It provides the following options to the user:
     landmark's location
 - Toggle whether the camera view is centered on the origin or centered on 
   the robot's current estimated location
+- Toggle the display of previous poses
 
 
-Building:
+To Build:
 
 Run qmake and then make.
+
+
+To Run:
+
+./SlamViz
+No input files need to be specified as these are currently hardcoded.
 
 
 Progress Assessment:
@@ -46,6 +54,8 @@ Optional To Do:
 
 - Add option to adjust playback speed
 - Add cockpit/first-person view
+- Use shader to render landmarks
+  - currently bogs down if all landmarks are displayed, even with low poly-count landmarks
 
 
 Attributions:
