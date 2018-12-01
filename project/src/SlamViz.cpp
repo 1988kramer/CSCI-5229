@@ -89,6 +89,12 @@ void SlamViz::togglePrevPoses(void)
    update();
 }
 
+void SlamViz::togglePrevPoses(void)
+{
+   disp_prev_poses = !disp_prev_poses;
+   update();
+}
+
 //
 // toggle projection mode
 //
@@ -273,14 +279,15 @@ void SlamViz::paintGL()
    // track pose if pose tracking enabled
    glTranslated(-x,-y,-z);
 
-   
+
    /*
+
    //  Translate intensity to color vectors
    float Ambient[]   = {float(0.01*ambient),float(0.01*ambient),float(0.01*ambient),1.0};
    float Diffuse[]   = {float(0.01*diffuse),float(0.01*diffuse),float(0.01*diffuse),1.0};
    float Specular[]  = {float(0.01*specular),float(0.01*specular),float(0.01*specular),1.0};
    */
-   //  draw ball at light position
+  
    glColor3f(1,1,1);
    ball(float(3.0*dim),float(3.0*dim),0.0 , 0.1);
 
@@ -338,6 +345,59 @@ void SlamViz::paintGL()
       glEnd();
       glDisable(GL_TEXTURE_2D);
       glActiveTexture(GL_TEXTURE0);
+=======
+   glPushMatrix();
+   //  Draw scene
+   glRotated(-90.0,1.0,0.0,0.0);
+   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
+   plane->drawAirplane(0,0,0,
+                       0,0,1,
+                       1,0,0);
+   glPopMatrix();
+
+   for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
+      it != lmrks.end(); it++)
+   {
+      if (it->second.quality >= lmrk_lwr_bound)
+      {
+         glPushMatrix();
+         glRotated(-90.0,1.0,0.0,0.0);
+         double x = it->second.point[0];
+         double y = it->second.point[1];
+         double z = it->second.point[2];
+         ball(x,y,z,scale_factor*it->second.quality);
+         glPopMatrix();
+      }
+   }
+
+   if (disp_inactive_lmrks)
+   {
+      for (std::map<unsigned long, Landmark>::iterator it = inactive_lmrks.begin();
+         it != inactive_lmrks.end(); it++)
+      {
+         if (it->second.quality >= lmrk_lwr_bound)
+         {
+            glPushMatrix();
+            glRotated(-90.0,1.0,0.0,0.0);
+            double x = it->second.point[0];
+            double y = it->second.point[1];
+            double z = it->second.point[2];
+            ball(x,y,z,0.05);
+            glPopMatrix();
+         }
+      }
+   }
+   if (disp_prev_poses)
+   {
+      for (int i = 0; i < prev_poses.size(); i++)
+      {
+         glPushMatrix();
+         glRotated(-90.0,1.0,0.0,0.0);
+         glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
+         drawAxes(0.5,false);
+         glPopMatrix();
+      }
+>>>>>>> 0da3bdc5bf19084afa467f00363641ef19e6831f
    }
    */
    
