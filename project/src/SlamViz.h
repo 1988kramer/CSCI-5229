@@ -91,8 +91,13 @@ private:
 	std::vector<Pose> prev_poses;
 	std::map<unsigned long, Landmark> lmrks;
 	std::map<unsigned long, Landmark> inactive_lmrks;
+
 	QOpenGLShaderProgram *shadow_shader;
 	QOpenGLFunctions *glFuncs;
+
+	std::vector<glm::vec3> star_vertices;
+	std::vector<glm::vec2> star_uvs;
+	std::vector<glm::vec3> star_normals;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -133,12 +138,16 @@ private:
 	void readLmrks();
 	void drawAxes(double len, bool draw_labels);
 	void addToPrevPoses();
+
 	void initShaders();
 	void initMap();
 	void shadowMap(void);
 	void Light(bool light);
 	void Scene(bool light);
 	void dispLandmarks();
+
+	void loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
+		std::vector<glm::vec2> &out_uvs, std::vector<glm::vec3> &out_normals);
 };
 
 #endif
