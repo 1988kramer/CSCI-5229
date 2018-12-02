@@ -212,13 +212,10 @@ void SlamViz::initializeGL()
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
    sky = new QOpenGLTexture(QImage(QString("sky2.jpg")));
-<<<<<<< HEAD
    plane = new airplane(texture,3,glFuncs);
    initShaders();
    initMap();
-=======
    loadOBJ("star.obj", star_vertices, star_uvs, star_normals);
->>>>>>> no_shader
 }
 
 void SlamViz::timerEvent(void)
@@ -302,14 +299,10 @@ void SlamViz::paintGL()
    */
   
    glColor3f(1,1,1);
-<<<<<<< HEAD
-   //ball(float(3.0*dim),float(3.0*dim),0.0 , 0.1);
 
-   /*
-=======
    ball(Position[0],Position[1],Position[2] , 0.1);
    glFuncs->glBufferData(GL_ARRAY_BUFFER, star_vertices.size()*sizeof(glm::vec3),&star_vertices[0],GL_STATIC_DRAW);
->>>>>>> no_shader
+   /*
    //  OpenGL should normalize normal vectors
    glEnable(GL_NORMALIZE);
    //  Enable lighting
@@ -698,7 +691,7 @@ void SlamViz::addToPrevPoses()
    }
 }
 
-<<<<<<< HEAD
+
 void SlamViz::initShaders()
 {
    shadow_shader = new QOpenGLShaderProgram(this);
@@ -935,7 +928,7 @@ void SlamViz::dispLandmarks()
       }
    }
 }
-=======
+
 void SlamViz::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
 		std::vector<glm::vec2> &out_uvs, std::vector<glm::vec3> &out_normals)
 {
@@ -1028,4 +1021,4 @@ void SlamViz::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
 		out_normals.push_back(normal);
 	}
 }
->>>>>>> no_shader
+
