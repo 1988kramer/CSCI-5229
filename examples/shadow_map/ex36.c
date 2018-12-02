@@ -517,7 +517,6 @@ void ShadowMap(void)
    gluLookAt(Lpos[0],Lpos[1],Lpos[2] , 0,0,0 , 0,1,0);
    //  Size viewport to desired dimensions
    glViewport(0,0,shadowdim,shadowdim);
-   printf("%d \n", shadowdim);
 
    // Redirect traffic to the frame buffer
    glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
