@@ -208,6 +208,7 @@ void SlamViz::initializeGL()
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
    sky = new QOpenGLTexture(QImage(QString("sky2.jpg")));
+   loadOBJ("star.obj", star_vertices, star_uvs, star_normals);
 }
 
 void SlamViz::timerEvent(void)
@@ -305,6 +306,7 @@ void SlamViz::paintGL()
 
    glColor3f(1,1,1);
    ball(Position[0],Position[1],Position[2] , 0.1);
+   glFuncs->glBufferData(GL_ARRAY_BUFFER, star_vertices.size()*sizeof(glm::vec3),&star_vertices[0],GL_STATIC_DRAW);
    //  OpenGL should normalize normal vectors
    glEnable(GL_NORMALIZE);
    //  Enable lighting
@@ -677,4 +679,97 @@ void SlamViz::addToPrevPoses()
       if (dist > 0.5)
          prev_poses.push_back(cur_pose);
    }
+}
+
+void SlamViz::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
+		std::vector<glm::vec2> &out_uvs, std::vector<glm::vec3> &out_normals)
+{
+	std::ifstream obj_file;
+	obj_file.open(path);
+	std::string line;
+
+	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+	std::vector<glm::vec3> temp_vertices;
+	std::vector<glm::vec2> temp_uvs;
+	std::vector<glm::vec3> temp_normals;
+
+
+	while(std::getline(obj_file, line))
+	{
+		std::istringstream ss(line);
+		std::string token;
+		std::getline(ss, token, ' ');
+
+		// if line describes a vertex
+		if (token == "v")
+		{
+			glm::vec3 vertex;
+			for (int i = 0; i < 3; i++)
+			{
+				std::getline(ss, token, ' ');
+				vertex[i] = std::stof(token);
+			}
+			temp_vertices.push_back(vertex);
+		}
+		// if line describes a uv
+		else if (token == "vt")
+		{
+			glm::vec2 uv;
+			for (int i = 0; i < 2; i++)
+			{
+				std::getline(ss, token, ' ');
+				uv[i] == std::stof(token);
+			}
+			temp_uvs.push_back(uv);
+		}
+		// if line describes a normal
+		else if (token == "vn")
+		{
+			glm::vec3 normal;
+			for (int i = 0; i < 3; i++)
+			{
+				std::getline(ss, token, ' ');
+				normal[i] = std::stof(token);
+			}
+			temp_normals.push_back(normal);
+		}
+		else if (token == "f")
+		{
+			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+			for (int i = 0; i < 3; i++)
+			{
+				std::getline(ss, token, ' ');
+				std::istringstream ss2(token);
+				std::string index;
+				std::getline(ss2, index, '/');
+				vertexIndex[i] = std::stoul(index);
+				std::getline(ss2, index, '/');
+				uvIndex[i] = std::stoul(index);
+				std::getline(ss2, index, '/');
+				normalIndex[i] = std::stoul(index);
+			}
+			for (int i = 0; i < 3; i++)
+			{
+				vertexIndices.push_back(vertexIndex[i]);
+				uvIndices.push_back(uvIndex[i]);
+				normalIndices.push_back(normalIndex[i]);
+			}
+		}
+	}
+
+	// process data read from file
+	for (unsigned int i = 0; i < vertexIndices.size(); i++)
+	{
+		unsigned int vertexIndex = vertexIndices[i];
+		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+		out_vertices.push_back(vertex);
+
+		unsigned int uvIndex = uvIndices[i];
+		glm::vec2 uv = temp_uvs[uvIndex - 1];
+		out_uvs.push_back(uv);
+
+		unsigned int normalIndex = normalIndices[i];
+		glm::vec3 normal = temp_normals[normalIndex - 1];
+		out_normals.push_back(normal);
+	}
 }
