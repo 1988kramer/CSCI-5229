@@ -40,7 +40,7 @@ Viewer::Viewer(QWidget* parent)
    QCheckBox* track_pose = new QCheckBox("Track Pose With Cam");
    QCheckBox* prev_poses = new QCheckBox("Show Prev Poses");
 
-   // QLabel* dim = new QLabel();
+   QLabel* dim = new QLabel();
 
    land_lower->setDecimals(2);
    land_lower->setSingleStep(0.01);
@@ -58,7 +58,7 @@ Viewer::Viewer(QWidget* parent)
    connect(track_pose, SIGNAL(clicked(void)), slam_viz, SLOT(togglePoseTrack(void)));
    connect(prev_poses, SIGNAL(clicked(void)), slam_viz, SLOT(togglePrevPoses(void)));
    //  Connect lorenz signals to display widgets
-   // connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
+   connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
 
 
    //  Connect combo box to setPAR in myself
@@ -77,20 +77,13 @@ Viewer::Viewer(QWidget* parent)
    QGridLayout* dsplay = new QGridLayout;
    dsplay->addWidget(reset,1,0);
    dsplay->addWidget(display,4,0);
-<<<<<<< HEAD
-=======
-   dsplay->addWidget(lighting,5,0);
->>>>>>> 0da3bdc5bf19084afa467f00363641ef19e6831f
+
    dsplay->addWidget(axes,6,0);
    dsplay->addWidget(texture,2,0);
    dsplay->addWidget(sky_button,7,0);
    dsplay->addWidget(new QLabel("Minimum Lmrk Qual"),3,1);
    dsplay->addWidget(land_lower,3,0);
-<<<<<<< HEAD
    dsplay->addWidget(dim,5,0);
-=======
-   // dsplay->addWidget(dim,8,0);
->>>>>>> 0da3bdc5bf19084afa467f00363641ef19e6831f
    dsplay->addWidget(inactive,8,0);
    dsplay->addWidget(track_pose,9,0);
    dsplay->addWidget(prev_poses,10,0);

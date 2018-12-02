@@ -7,5 +7,5 @@ HEADERS = viewer.h SlamViz.h airplane.h CSCIx229.h
 SOURCES = main.cpp viewer.cpp SlamViz.cpp airplane.cpp errcheck.cpp fatal.cpp
 #  Include OpenGL support
 QT += opengl
-#LIBS += -lGLU -lglut
+LIBS += -lGLU -lglut
 CONFIG += c++11

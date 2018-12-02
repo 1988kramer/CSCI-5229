@@ -7,11 +7,16 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
+
 #include <QGLWidget>
+#include <QGLFunctions>
 #include <QString>
 #include <QOpenGLTexture>
 #include <QOpenGLShaderProgram>
-#include <QOpenGLFunctions>
+//#include <QOpenGLFunctions>
+
+//#include <GL/gl.h>
+
 #include "airplane.h"
 #include "CSCIx229.h"
 #include <iostream>
@@ -42,7 +47,7 @@ typedef struct Landmark
 	double quality;
 } Landmark;
 
-class SlamViz : public QGLWidget
+class SlamViz : public QGLWidget, protected QGLFunctions
 {
 Q_OBJECT
 private:

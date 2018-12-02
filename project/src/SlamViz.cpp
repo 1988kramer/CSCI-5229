@@ -89,12 +89,6 @@ void SlamViz::togglePrevPoses(void)
    update();
 }
 
-void SlamViz::togglePrevPoses(void)
-{
-   disp_prev_poses = !disp_prev_poses;
-   update();
-}
-
 //
 // toggle projection mode
 //
@@ -206,8 +200,8 @@ void SlamViz::initializeGL()
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
    sky = new QOpenGLTexture(QImage(QString("sky2.jpg")));
 
+   initializeGLFunctions();
    initShaders();
-
    initMap();
 }
 
@@ -289,7 +283,7 @@ void SlamViz::paintGL()
    */
   
    glColor3f(1,1,1);
-   ball(float(3.0*dim),float(3.0*dim),0.0 , 0.1);
+   //ball(float(3.0*dim),float(3.0*dim),0.0 , 0.1);
 
    /*
    //  OpenGL should normalize normal vectors
@@ -698,9 +692,9 @@ void SlamViz::addToPrevPoses()
 void SlamViz::initShaders()
 {
    // compile shader for shadowing
-   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shadow.vert"));
+   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, "shadow.vert"));
       close();
-   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shadow.frag"));
+   if (!shadow_shader.addShaderFromSourceFile(QOpenGLShader::Fragment, "shadow.frag"));
       close();
    if (!shadow_shader.link())
       close();
@@ -712,11 +706,9 @@ void SlamViz::initMap()
 {
    unsigned int shadowtex;
    int n;
-
    // make sure multitextures are supported
    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &n);
    if (n<2) close();
-
    // get max texture buffer size
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &shadowdim);
    // limit texture size to maximum buffer size
@@ -725,7 +717,6 @@ void SlamViz::initMap()
    // limit texture size to 2048 for performance
    if (shadowdim > 2048) shadowdim = 2048;
    if (shadowdim < 512) close(); // shadow dimension too small
-
    // do shadow textures in multitexture 1
    glActiveTexture(GL_TEXTURE1);
    glGenTextures(1,&shadowtex);
@@ -733,7 +724,6 @@ void SlamViz::initMap()
    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowdim, shadowdim, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-
    //  Set texture mapping to clamp and linear interpolation
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
