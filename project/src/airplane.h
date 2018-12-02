@@ -7,11 +7,12 @@
 
 #include "CSCIx229.h"
 #include <QOpenGLTexture>
+#include <QOpenGLFunctions>
 
 class airplane
 {
 public:
-	airplane(QOpenGLTexture **textures, int num_tex); // constructor
+	airplane(QOpenGLTexture **textures, int num_tex, QOpenGLFunctions *GLFuncs); // constructor
 	void drawAirplane(double x, double y, double z,
 										double dx, double dy, double dz,
 										double ux, double uy, double uz);
@@ -22,6 +23,7 @@ private:
 	QOpenGLTexture** texture;
 	int ntex = 0;
 	int num_textures;
+	QOpenGLFunctions *glFuncs;
 
 
 	void Vertex(double th, double ph);

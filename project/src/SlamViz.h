@@ -13,7 +13,7 @@
 #include <QString>
 #include <QOpenGLTexture>
 #include <QOpenGLShaderProgram>
-//#include <QOpenGLFunctions>
+#include <QOpenGLFunctions>
 
 //#include <GL/gl.h>
 
@@ -47,7 +47,7 @@ typedef struct Landmark
 	double quality;
 } Landmark;
 
-class SlamViz : public QGLWidget, protected QGLFunctions
+class SlamViz : public QGLWidget, protected QGLFunctions, protected QOpenGLFunctions
 {
 Q_OBJECT
 private:
@@ -91,7 +91,8 @@ private:
 	std::vector<Pose> prev_poses;
 	std::map<unsigned long, Landmark> lmrks;
 	std::map<unsigned long, Landmark> inactive_lmrks;
-	QOpenGLShaderProgram shadow_shader;
+	QOpenGLShaderProgram *shadow_shader;
+	QOpenGLFunctions *glFuncs;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -127,7 +128,7 @@ private:
 	void Vertex(double th, double ph);
 	void Sky(double D);
 	void displayGrid(double D);
-	void project();
+	void project(double fov, double asp, double dim);
 	void readPose();
 	void readLmrks();
 	void drawAxes(double len, bool draw_labels);
@@ -135,8 +136,9 @@ private:
 	void initShaders();
 	void initMap();
 	void shadowMap(void);
-	void Light(int light);
-	void Scene(int light);
+	void Light(bool light);
+	void Scene(bool light);
+	void dispLandmarks();
 };
 
 #endif

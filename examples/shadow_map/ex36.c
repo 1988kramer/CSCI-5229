@@ -517,6 +517,7 @@ void ShadowMap(void)
    gluLookAt(Lpos[0],Lpos[1],Lpos[2] , 0,0,0 , 0,1,0);
    //  Size viewport to desired dimensions
    glViewport(0,0,shadowdim,shadowdim);
+   printf("%d \n", shadowdim);
 
    // Redirect traffic to the frame buffer
    glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
@@ -541,6 +542,7 @@ void ShadowMap(void)
 
    // Retrieve result and transpose to get the s, t, r, and q rows for plane equations
    glGetDoublev(GL_MODELVIEW_MATRIX,Tproj);
+   //printf("%f %f %f %f \n", Tproj[0], Tproj[1], Tproj[2], Tproj[3]);
    Svec[0] = Tproj[0];    Tvec[0] = Tproj[1];    Rvec[0] = Tproj[2];    Qvec[0] = Tproj[3];
    Svec[1] = Tproj[4];    Tvec[1] = Tproj[5];    Rvec[1] = Tproj[6];    Qvec[1] = Tproj[7];
    Svec[2] = Tproj[8];    Tvec[2] = Tproj[9];    Rvec[2] = Tproj[10];   Qvec[2] = Tproj[11];
@@ -630,7 +632,7 @@ void idle(int k)
 {
    //  Elapsed time in seconds
    double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
-   zh = fmod(90*t,1440.0);
+   //zh = fmod(90*t,1440.0);
    //  Update shadow map
    ShadowMap();
    //  Tell GLUT it is necessary to redisplay the scene

@@ -1,9 +1,10 @@
 #include "airplane.h"
 
-airplane::airplane(QOpenGLTexture** textures, int num_tex)
+airplane::airplane(QOpenGLTexture** textures, int num_tex, QOpenGLFunctions *GLFuncs)
 {
 	texture = textures;
 	num_textures = num_tex;
+  glFuncs = GLFuncs;
 }
 
 void airplane::drawAirplane(double x, double y, double z,
@@ -162,9 +163,9 @@ void airplane::drawFuselage()
   glMaterialfv(GL_FRONT,GL_EMISSION,black);
 
   // enable textures
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  //glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
   glColor3f(1.0,1.0,1.0);
+  //glFuncs->glEnable(GL_TEXTURE_2D);
   texture[ntex]->bind();
 
   glBegin(GL_QUADS);
@@ -315,7 +316,8 @@ void airplane::drawFuselage()
   glTexCoord2f(0.25,0.9); glVertex3d(firewall, cowling_bottom, cowling_side);
   glTexCoord2f(0,1); glVertex3d(0.25, door_bottom, 0.1);
   glEnd();
-  glDisable(GL_TEXTURE_2D);
+  texture[ntex]->release();
+  //glFuncs->glDisable(GL_TEXTURE_2D);
 
   // windscreen
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,1.0);
@@ -327,7 +329,7 @@ void airplane::drawFuselage()
              firewall,cowling_top,cowling_side);
 
   // windows
-  glEnable(GL_POLYGON_OFFSET_FILL);
+  glFuncs->glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-1.0f,-1.0f);
 
   glBegin(GL_QUADS);
@@ -366,13 +368,13 @@ void airplane::drawFuselage()
 
   glEnd();
 
-  glDisable(GL_POLYGON_OFFSET_FILL);
+  glFuncs->glDisable(GL_POLYGON_OFFSET_FILL);
 
   
 
   glMaterialf(GL_FRONT,GL_SHININESS,0.5);
-  glEnable(GL_TEXTURE_2D);
   glColor3f(1.0,1.0,1.0);
+  //glFuncs->glEnable(GL_TEXTURE_2D);
   texture[ntex]->bind();
 
   // aft cowling
@@ -473,16 +475,16 @@ void airplane::drawFuselage()
   }
 
   glEnd();
-  glDisable(GL_TEXTURE_2D);
+  texture[ntex]->release();
+  //glFuncs->glDisable(GL_TEXTURE_2D);
 
 }
 
 void airplane::drawWing()
 {
-
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  //glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
   glColor3f(1.0,1.0,1.0);
+  //glFuncs->glEnable(GL_TEXTURE_2D);
   texture[ntex]->bind();
 
   // define wing cross section
@@ -579,7 +581,8 @@ void airplane::drawWing()
   glVertex3d(cross_sec_x[num_points-1],cross_sec_y[num_points-1],-1.0*wingtip);
   
   glEnd();
-  glDisable(GL_TEXTURE_2D);
+  texture[ntex]->release();
+  //glFuncs->glDisable(GL_TEXTURE_2D);
 }
 
 void airplane::drawVStab()
@@ -592,9 +595,9 @@ void airplane::drawVStab()
   double direction = 1.0;
 
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,0.5);
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  //glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
   glColor3f(1.0,1.0,1.0);
+  //glFuncs->glEnable(GL_TEXTURE_2D);
   texture[ntex]->bind();
   
   // draw sides of v-stab
@@ -634,7 +637,8 @@ void airplane::drawVStab()
   glTexCoord2f(tex_scale*cross_sec_x[0],0);
   glVertex3d(cross_sec_x[0], cross_sec_y[0], offset);
   glEnd();
-  glDisable(GL_TEXTURE_2D);
+  texture[ntex]->release();
+  //glFuncs->glDisable(GL_TEXTURE_2D);
 }
 
 void airplane::drawHStab()
@@ -653,9 +657,9 @@ void airplane::drawHStab()
   
   double tex_scale = 4.0;
 
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  //glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
   glColor3f(1.0,1.0,1.0);
+  //glFuncs->glEnable(GL_TEXTURE_2D);
   texture[ntex]->bind();
      
   glBegin(GL_POLYGON);
@@ -681,12 +685,13 @@ void airplane::drawHStab()
                cross_sec_z[i]*z_dir);
   }
   glEnd();
+  texture[ntex]->release();
+  //glFuncs->glDisable(GL_TEXTURE_2D);
 
-  glDisable(GL_TEXTURE_2D);
 
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  //glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
   glColor3f(1.0,1.0,1.0);
+  //glFuncs->glEnable(GL_TEXTURE_2D);
   texture[ntex]->bind();
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
@@ -730,10 +735,10 @@ void airplane::drawHStab()
   }
   glEnd();
 
-  glEnable(GL_TEXTURE_2D);
-  glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+  //glEnable(GL_TEXTURE_2D);
+  //glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
   glColor3f(1.0,1.0,1.0);
-  texture[ntex]->bind();
+  //texture[ntex]->bind();
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
@@ -749,5 +754,6 @@ void airplane::drawHStab()
                cross_sec_z[i]*z_dir);
   }
   glEnd();
-  glDisable(GL_TEXTURE_2D);
+  texture[ntex]->release();
+  //glFuncs->glDisable(GL_TEXTURE_2D);
 }
