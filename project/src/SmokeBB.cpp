@@ -66,8 +66,11 @@ void SmokeBB::DrawSmoke(float cam_x, float cam_y, float cam_z,
 void SmokeBB::DrawObject(float scale)
 {
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	smoke_tex->bind();
-	glColor3f(1.0,1.0,1.0);
+	glScalef(scale,scale,scale);
+	glColor4f(1.0,1.0,1.0,1.0);
 	glBegin(GL_QUADS);
 	glNormal3f(0.0,0.0,1.0);
 	glTexCoord2f(0.0,0.0); glVertex3d(-0.5,-0.5,0.0);
@@ -76,6 +79,7 @@ void SmokeBB::DrawObject(float scale)
 	glTexCoord2f(0.0,1.0); glVertex3d(-0.5,0.5,0.0);
 	glEnd();
 	smoke_tex->release();
+	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 }
 

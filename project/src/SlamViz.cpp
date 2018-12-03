@@ -214,7 +214,7 @@ void SlamViz::initializeGL()
    plane = new airplane(texture,3,glFuncs);
    star = new Star();
    smoke = new SmokeBB();
-   initShaders();
+   //initShaders();
    initMap();
 }
 
@@ -371,29 +371,32 @@ void SlamViz::paintGL()
    
    if (disp_prev_poses)
    {
-      for (int i = 0; i < prev_poses.size(); i++)
+      float num_poses = 10.0;
+      for (int i = prev_poses.size()-1; i >= 0; i--)
       {
          glPushMatrix();
          glRotated(-90.0,1.0,0.0,0.0);
          glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
-         //drawAxes(0.5,false);
-         /*
-         glm::vec3 scale;
-         glm::quat rotation;
-         glm::vec3 trans;
-         glm::vec3 skew;
-         glm::vec4 perspective;
-         glm::decompose(prev_poses[i].T_WS, scale, rotation, trans, skew, perspective);
-         //glm::rotateX(trans, -90.0f);
-         */
-         float mod[16];
-         //float cam[16];
-         glGetFloatv(GL_MODELVIEW_MATRIX, mod);
-         glm::mat4 cam = glm::make_mat4(mod);
-         cam = glm::inverse(cam);
-         glm::vec4 temp = {0.0,0.0,0.0,1.0};
-         glm::vec4 cam_trans = cam * temp;
-         smoke->DrawSmoke(cam_trans[0],cam_trans[1],cam_trans[2], mod[12],mod[13],mod[14], 1.0);
+         
+         if (axes)
+         {
+            drawAxes(0.5,false);
+         }
+         else
+         {
+            if (num_poses > 0)
+            {
+               float mod[16];
+               //float cam[16];
+               glGetFloatv(GL_MODELVIEW_MATRIX, mod);
+               glm::mat4 cam = glm::make_mat4(mod);
+               cam = glm::inverse(cam);
+               glm::vec4 temp = {0.0,0.0,0.0,1.0};
+               glm::vec4 cam_trans = cam * temp;
+               smoke->DrawSmoke(cam_trans[0],cam_trans[1],cam_trans[2], mod[12],mod[13],mod[14], num_poses/10.0);
+               num_poses--;
+            }
+         }
          glPopMatrix();
       }
    }
