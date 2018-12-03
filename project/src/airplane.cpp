@@ -54,9 +54,9 @@ void airplane::changeTexture()
 
 void airplane::Vertex(double th, double ph)
 {
-	double x = Sin(th)*Cos(ph);
-  double y = Cos(th)*Cos(ph);
-  double z =         Sin(ph);
+	double x = Sind(th)*Cosd(ph);
+  double y = Cosd(th)*Cosd(ph);
+  double z =         Sind(ph);
   //  For a sphere at the origin, the position
   //  and normal vectors are the same
   glNormal3d(x,y,z);
@@ -65,15 +65,15 @@ void airplane::Vertex(double th, double ph)
 
 void airplane::pointOnCircle(double th, double r, double c_x, double c_y, double c_z)
 {
-  glVertex3d(c_x, c_y + (r*Cos(th)), c_z + (r*Sin(th)));
+  glVertex3d(c_x, c_y + (r*Cosd(th)), c_z + (r*Sind(th)));
 }
 
 void airplane::pointOnCircle2(double th, double r, double c_x, double c_y, double c_z,
                   						double *px, double *py, double *pz)
 {
   *px = c_x;
-  *py = c_y + r*Cos(th);
-  *pz = c_z + r*Sin(th);
+  *py = c_y + r*Cosd(th);
+  *pz = c_z + r*Sind(th);
 }
 
 void airplane::getCowlNorms(double aft_x, double aft_y, 
@@ -82,8 +82,8 @@ void airplane::getCowlNorms(double aft_x, double aft_y,
   double norm_i = aft_y - fwd_y;
   double norm_j = aft_x - fwd_x;
   double l = sqrt(norm_i*norm_i + norm_j*norm_j);
-  norm_j = l*Cos(th);
-  double norm_k = l*Sin(th);
+  norm_j = l*Cosd(th);
+  double norm_k = l*Sind(th);
 
   glNormal3f(norm_i, norm_j, norm_k);
 }
@@ -392,7 +392,7 @@ void airplane::drawFuselage()
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, cowling_top, px, py, th);
 
-    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glNormal3f(Sind(fwd_cowl_angle),Cosd(th),Sind(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
 
@@ -412,7 +412,7 @@ void airplane::drawFuselage()
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, vert_position, px, py, th);
 
-    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glNormal3f(Sind(fwd_cowl_angle),Cosd(th),Sind(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
 
@@ -428,7 +428,7 @@ void airplane::drawFuselage()
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, cowling_bottom, px, py, th);
 
-    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glNormal3f(Sind(fwd_cowl_angle),Cosd(th),Sind(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
 
@@ -444,7 +444,7 @@ void airplane::drawFuselage()
     pointOnCircle2(th,radius,fwd_cowl,cowl_y_center,0.0,&px,&py,&pz);
     getCowlNorms(firewall, vert_position, px, py, th);
 
-    glNormal3f(Sin(fwd_cowl_angle),Cos(th),Sin(th));
+    glNormal3f(Sind(fwd_cowl_angle),Cosd(th),Sind(th));
     glTexCoord2f(0.25,th/90.); 
     glVertex3d(px,py,pz);
 
@@ -469,8 +469,8 @@ void airplane::drawFuselage()
     glTexCoord2f(0.5,0.5); 
     glVertex3d(nose, cowl_y_center, 0.0);
 
-    glNormal3f(Sin(fwd_cowl_angle), Cos(th), Sin(th));
-    glTexCoord2f(0.35*Cos(th)+0.5,0.35*Sin(th)+0.5); 
+    glNormal3f(Sind(fwd_cowl_angle), Cosd(th), Sind(th));
+    glTexCoord2f(0.35*Cosd(th)+0.5,0.35*Sind(th)+0.5); 
     glVertex3d(px,py,pz);
   }
 
@@ -625,13 +625,13 @@ void airplane::drawVStab()
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
-    glNormal3f(Cos(norm_th[i]),Sin(norm_th[i]),0.0);
+    glNormal3f(Cosd(norm_th[i]),Sind(norm_th[i]),0.0);
     glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
     glVertex3d(cross_sec_x[i], cross_sec_y[i], -1.0*offset);
     glTexCoord2f(tex_scale*cross_sec_x[i],0);
     glVertex3d(cross_sec_x[i], cross_sec_y[i], offset);
   }
-  glNormal3f(Cos(norm_th[num_points-1]),Sin(norm_th[num_points-1]),0.0);
+  glNormal3f(Cosd(norm_th[num_points-1]),Sind(norm_th[num_points-1]),0.0);
   glTexCoord2f(tex_scale*cross_sec_x[0], tex_scale*2*offset);
   glVertex3d(cross_sec_x[0], cross_sec_y[0], -1.0*offset);
   glTexCoord2f(tex_scale*cross_sec_x[0],0);
@@ -696,8 +696,8 @@ void airplane::drawHStab()
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
-    glNormal3f(Sin(norm_th[i]*z_dir),0.0,
-               Cos(norm_th[i]*z_dir));
+    glNormal3f(Sind(norm_th[i]*z_dir),0.0,
+               Cosd(norm_th[i]*z_dir));
     glTexCoord2f(tex_scale*cross_sec_x[i], 0);
     glVertex3d(cross_sec_x[i],
                stab_height + offset, 
@@ -742,8 +742,8 @@ void airplane::drawHStab()
   glBegin(GL_QUAD_STRIP);
   for (int i = 0; i < num_points; i++)
   {
-    glNormal3f(Sin(norm_th[i]*z_dir),0.0,
-               Cos(norm_th[i]*z_dir));
+    glNormal3f(Sind(norm_th[i]*z_dir),0.0,
+               Cosd(norm_th[i]*z_dir));
     glTexCoord2f(tex_scale*cross_sec_x[i], tex_scale*2*offset);
     glVertex3d(cross_sec_x[i],
                stab_height - offset,

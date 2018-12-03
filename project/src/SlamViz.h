@@ -18,6 +18,8 @@
 //#include <GL/gl.h>
 
 #include "airplane.h"
+#include "Star.h"
+#include "SmokeBB.h"
 #include "CSCIx229.h"
 #include <iostream>
 #include <sstream>
@@ -29,6 +31,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <glm/matrix.hpp>
 
 
@@ -82,9 +85,10 @@ private:
 			local, emission, shiny, inc, shadowdim;
 	unsigned int framebuf;
 	airplane* plane;
+	Star* star;
+	SmokeBB* smoke;
 	QOpenGLTexture *texture[3];
 	QOpenGLTexture *sky;
-	QOpenGLTexture *star_tex;
 	QTimer* timer;
 	std::ifstream* pose_file;
 	std::ifstream* lmrk_file;
@@ -96,9 +100,6 @@ private:
 	QOpenGLShaderProgram *shadow_shader;
 	QOpenGLFunctions *glFuncs;
 
-	std::vector<glm::vec3> star_vertices;
-	std::vector<glm::vec2> star_uvs;
-	std::vector<glm::vec3> star_normals;
 
 public:
 	SlamViz(QWidget* parent=0);
@@ -108,14 +109,14 @@ public slots:
 	void reset(void);  // Reset view angles and zoom 
 	void toggleAxes(void);
 	void toggleDisplay(void);
-  void setDIM(double DIM);    //  Slot to set dim
-  void switchTexture(void);
-  void timerEvent(void);
-  void toggleSky(void);
-  void setLmrkDispBound(double bound);
-  void toggleInactive(void);
-  void togglePoseTrack(void);
-  void togglePrevPoses(void);
+  	void setDIM(double DIM);    //  Slot to set dim
+  	void switchTexture(void);
+  	void timerEvent(void);
+  	void toggleSky(void);
+  	void setLmrkDispBound(double bound);
+  	void toggleInactive(void);
+  	void togglePoseTrack(void);
+  	void togglePrevPoses(void);
 
 signals:
 	void angles(QString text); // Signal for display angles
@@ -146,12 +147,6 @@ private:
 	void Light(bool light);
 	void Scene(bool light);
 	void dispLandmarks();
-
-	void loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
-		std::vector<glm::vec2> &out_uvs, std::vector<glm::vec3> &out_normals);
-	void drawStar(double cx, double cy, double cz, 
-								double dx, double dy, double dz,
-								double ux, double uy, double uz, double scale);
 };
 
 #endif
