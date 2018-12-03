@@ -66,7 +66,7 @@ private:
 	QPoint pos;
 	double dim;
 	double asp;
-	double x,y,z; // current view center
+	double v_x,v_y,v_z; // current view center
 	double ylight;
 	double cur_time;
 	double last_time;
@@ -84,6 +84,7 @@ private:
 	airplane* plane;
 	QOpenGLTexture *texture[3];
 	QOpenGLTexture *sky;
+	QOpenGLTexture *star_tex;
 	QTimer* timer;
 	std::ifstream* pose_file;
 	std::ifstream* lmrk_file;
@@ -148,6 +149,9 @@ private:
 
 	void loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
 		std::vector<glm::vec2> &out_uvs, std::vector<glm::vec3> &out_normals);
+	void drawStar(double cx, double cy, double cz, 
+								double dx, double dy, double dz,
+								double ux, double uy, double uz, double scale);
 };
 
 #endif

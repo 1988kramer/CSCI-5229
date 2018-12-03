@@ -14,7 +14,7 @@ SlamViz::SlamViz(QWidget* parent)
    th = ph = 30;      //  Set intial display angles
    asp = 1;           //  Aspect ratio
    dim = 20;          //  World dimension
-   x = y = z = 0;
+   v_x = v_y = v_z = 0;
    l_mouse = r_mouse = false;         //  Mouse movement
    ambient   =  30;  // Ambient intensity (%)
    diffuse   = 100;  // Diffuse intensity (%)
@@ -33,9 +33,9 @@ SlamViz::SlamViz(QWidget* parent)
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
    mode = true;
-   //timer = new QTimer(this);
-   //connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
-   //timer->start(16);
+   timer = new QTimer(this);
+   connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+   timer->start(16);
    pose_file = new std::ifstream();
    pose_file->open("pose_log.txt");
    lmrk_file = new std::ifstream();
@@ -113,7 +113,6 @@ void SlamViz::switchTexture(void)
 void SlamViz::reset(void)
 {
    th = ph = 0;  //  Set parameter
-   x = y = z = 0;
    shadowMap();
    update();     //  Request redisplay
 }
@@ -212,6 +211,7 @@ void SlamViz::initializeGL()
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
    texture[2] = new QOpenGLTexture(QImage(QString("bricks.bmp")));
    sky = new QOpenGLTexture(QImage(QString("sky2.jpg")));
+   star_tex = new QOpenGLTexture(QImage(QString("star_tex.jpg")));
    plane = new airplane(texture,3,glFuncs);
    initShaders();
    initMap();
@@ -288,7 +288,7 @@ void SlamViz::paintGL()
    }
    gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cos(ph),0);
    // track pose if pose tracking enabled
-   //glTranslated(-x,-y,-z);
+   glTranslated(-v_x,-v_y,-v_z);
 
    /*
 
@@ -300,8 +300,20 @@ void SlamViz::paintGL()
   
    glColor3f(1,1,1);
 
-   ball(Position[0],Position[1],Position[2] , 0.1);
+   /*
+   GLuint vertex_buffer;
+   glFuncs->glGenBuffers(1, &vertex_buffer);
+   glFuncs->glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
    glFuncs->glBufferData(GL_ARRAY_BUFFER, star_vertices.size()*sizeof(glm::vec3),&star_vertices[0],GL_STATIC_DRAW);
+   
+   Gluint uv_buffer;
+   glFuncs->glGenBuffers(1, &uv_buffer);
+   glFuncs->glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
+   glFuncl->glBufferData(GL_ARRAY_BUFFER, star_uvs.size()*sizeof(glm::vec2), &star_uvs[0], GL_STATIC_DRAW);
+   */
+
+   
+
    /*
    //  OpenGL should normalize normal vectors
    glEnable(GL_NORMALIZE);
@@ -341,7 +353,7 @@ void SlamViz::paintGL()
    Scene(true);
    shadow_shader->release();
 
-   dispLandmarks();
+   //dispLandmarks();
 
    if (axes)
      drawAxes(2.0, true);
@@ -574,13 +586,13 @@ void SlamViz::readPose()
       cur_pose.T_WS = T_mat * rotation_mat;
       if (pose_track)
       {
-         x = translation[0];
-         y = translation[2];
-         z = -translation[1];
+         v_x = translation[0];
+         v_y = translation[2];
+         v_z = -translation[1];
       }
       else
       {
-         x = y = z = 0;
+         v_x = v_y = v_z = 0;
       }
    }
 }
@@ -788,7 +800,7 @@ void SlamViz::shadowMap(void)
    gluPerspective(114.6*atan(Dim/Ldist),1,Ldist-Dim,Ldist+Dim);
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-   gluLookAt(Lpos[0],Lpos[1],Lpos[2], x,y,z, 0,1,0);
+   gluLookAt(Lpos[0],Lpos[1],Lpos[2], v_x,v_y,v_z, 0,1,0);
    glFuncs->glViewport(0,0,shadowdim,shadowdim);
    
    glFuncs->glBindFramebuffer(GL_FRAMEBUFFER, framebuf);
@@ -870,15 +882,17 @@ void SlamViz::Scene(bool light)
    
    glPushMatrix();
    //  Draw scene
-   //glRotated(-90.0,1.0,0.0,0.0);
+   glRotated(-90.0,1.0,0.0,0.0);
    glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
    plane->drawAirplane(0,0,0,
                        0,0,1,
                        1,0,0);
 
-   plane->drawAirplane(-1,0,0, 0,0,1, 1,0,0);
+   //plane->drawAirplane(-1,0,0, 0,0,1, 1,0,0);
 
    glPopMatrix();
+
+   dispLandmarks();
    
    
    if (light) 
@@ -887,7 +901,6 @@ void SlamViz::Scene(bool light)
    // here if not doing lighting
    if (!light) 
    {
-      dispLandmarks();
       return;
    }
    
@@ -906,7 +919,7 @@ void SlamViz::dispLandmarks()
          double x = it->second.point[0];
          double y = it->second.point[1];
          double z = it->second.point[2];
-         ball(x,y,z,scale_factor*it->second.quality);
+         drawStar(x,y,z, x-v_x,y-v_y,z-v_z, 1.,0.,0., it->second.quality);
          glPopMatrix();
       }
    }
@@ -922,7 +935,7 @@ void SlamViz::dispLandmarks()
             double x = it->second.point[0];
             double y = it->second.point[1];
             double z = it->second.point[2];
-            ball(x,y,z,0.05);
+            drawStar(x,y,z, x-v_x,y-v_y,z-v_z, 1.,0.,0., it->second.quality);;
             glPopMatrix();
          }
       }
@@ -1020,5 +1033,55 @@ void SlamViz::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
 		glm::vec3 normal = temp_normals[normalIndex - 1];
 		out_normals.push_back(normal);
 	}
+}
+
+void SlamViz::drawStar(double cx, double cy, double cz, 
+								double dx, double dy, double dz,
+								double ux, double uy, double uz,
+								double scale)
+{
+	//  Unit vector for facing direction
+  double D0 = sqrt(dx*dx+dy*dy+dz*dz);
+  double X0 = dx/D0;
+  double Y0 = dy/D0;
+  double Z0 = dz/D0;
+  //  Unit vector in "up" direction
+  double D1 = sqrt(ux*ux+uy*uy+uz*uz);
+  double X1 = ux/D1;
+  double Y1 = uy/D1;
+  double Z1 = uz/D1;
+  //  Cross product gives the third vector
+  double X2 = Y0*Z1-Y1*Z0;
+  double Y2 = Z0*X1-Z1*X0;
+  double Z2 = X0*Y1-X1*Y0;
+  //  Rotation matrix
+  double mat[16];
+  mat[0] = X0;   mat[4] = X1;   mat[ 8] = X2;   mat[12] = 0;
+  mat[1] = Y0;   mat[5] = Y1;   mat[ 9] = Y2;   mat[13] = 0;
+  mat[2] = Z0;   mat[6] = Z1;   mat[10] = Z2;   mat[14] = 0;
+  mat[3] =  0;   mat[7] =  0;   mat[11] =  0;   mat[15] = 1;
+
+  // save current transforms
+  glPushMatrix();
+
+  // offset, scale and rotate
+  glTranslated(cx,cy,cz);
+  glRotated(90,0.,0.,1.);
+  glMultMatrixd(mat);
+  glScaled(scale, scale, scale);
+
+
+  star_tex->bind();
+  glBegin(GL_TRIANGLES);
+  for (int i = 0; i < star_vertices.size(); i++)
+  {
+  	glNormal3f(star_normals[i][0],star_normals[i][1],star_normals[i][2]);
+  	glTexCoord2f(star_uvs[i][0],star_uvs[i][1]);
+  	glVertex3f(star_vertices[i][0],star_vertices[i][1],star_vertices[i][2]);
+  }
+  glEnd();
+  star_tex->release();
+
+  glPopMatrix();
 }
 
