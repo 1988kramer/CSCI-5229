@@ -260,7 +260,7 @@ void SlamViz::paintGL()
    double Ex = (-2)*dim*Sind(th)*Cosd(ph);
    double Ey = (2)*dim        *Sind(ph);
    double Ez = (2)*dim*Cosd(th)*Cosd(ph);
-   emit dimen(QString::number(Ex)+", "+QString::number(Ey)+", "+QString::number(Ez));
+   //emit dimen(QString::number(Ex)+", "+QString::number(Ey)+", "+QString::number(Ez));
 
    //  Clear screen and Z-buffer
    glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -375,25 +375,29 @@ void SlamViz::paintGL()
       for (int i = prev_poses.size()-1; i >= 0; i--)
       {
          glPushMatrix();
-         glRotated(-90.0,1.0,0.0,0.0);
-         glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
          
          if (axes)
          {
+            glRotated(-90.0,1.0,0.0,0.0);
+            glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
             drawAxes(0.5,false);
          }
          else
          {
-            if (num_poses > 0)
+            double max_age = 10.0;
+            double age = cur_pose.timestamp - prev_poses[i].timestamp;
+            age = std::max(age, 1.0);
+            if (num_poses > 0 && 
+               cur_pose.timestamp - prev_poses[i].timestamp < max_age)
             {
-               float mod[16];
-               //float cam[16];
-               glGetFloatv(GL_MODELVIEW_MATRIX, mod);
-               glm::mat4 cam = glm::make_mat4(mod);
-               cam = glm::inverse(cam);
-               glm::vec4 temp = {0.0,0.0,0.0,1.0};
-               glm::vec4 cam_trans = cam * temp;
-               smoke->DrawSmoke(cam_trans[0],cam_trans[1],cam_trans[2], mod[12],mod[13],mod[14], num_poses/10.0);
+               float x = prev_poses[i].T_WS[3][0];
+               float z = -prev_poses[i].T_WS[3][1];
+               float y = prev_poses[i].T_WS[3][2];
+               glTranslatef(x,y,z);
+
+               smoke->DrawSmoke(Ex+v_x,Ey+v_y,Ez+v_z, 
+                                v_x,v_y,v_z, 
+                                0.25*max_age/age);
                num_poses--;
             }
          }

@@ -10,10 +10,10 @@ void SmokeBB::DrawSmoke(float cam_x, float cam_y, float cam_z,
 			  	   		float obj_pos_z, float scale)
 {
 	float look_at[3], obj_to_cam_proj[3], obj_to_cam[3], up_aux[3];
-	float model_view[16];
 	float angle_cosine;
 
 	glPushMatrix();
+	
 
 	// calculate vector from local origin to camera projected in xz
 	obj_to_cam_proj[0] = cam_x - obj_pos_x;
@@ -58,6 +58,7 @@ void SmokeBB::DrawSmoke(float cam_x, float cam_y, float cam_z,
 			glRotatef(acos(angle_cosine)*180.0/3.1415,-1,0,0);
 	}
 	//glTranslated(obj_pos_x, obj_pos_y, obj_pos_z);
+	
 	DrawObject(scale);
 
 	glPopMatrix();
@@ -71,6 +72,7 @@ void SmokeBB::DrawObject(float scale)
 	smoke_tex->bind();
 	glScalef(scale,scale,scale);
 	glColor4f(1.0,1.0,1.0,1.0);
+	//glColor3f(1.0,1.0,1.0);
 	glBegin(GL_QUADS);
 	glNormal3f(0.0,0.0,1.0);
 	glTexCoord2f(0.0,0.0); glVertex3d(-0.5,-0.5,0.0);
