@@ -260,7 +260,7 @@ void SlamViz::paintGL()
    double Ex = (-2)*dim*Sind(th)*Cosd(ph);
    double Ey = (2)*dim        *Sind(ph);
    double Ez = (2)*dim*Cosd(th)*Cosd(ph);
-   std::cerr << "x one: " << Ex << std::endl;
+   emit dimen(QString::number(Ex)+", "+QString::number(Ey)+", "+QString::number(Ez));
 
    //  Clear screen and Z-buffer
    glFuncs->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
