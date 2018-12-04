@@ -43,7 +43,7 @@ void Star::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
 			for (int i = 0; i < 2; i++)
 			{
 				std::getline(ss, token, ' ');
-				uv[i] == std::stof(token);
+				uv[i] = std::stof(token);
 			}
 			temp_uvs.push_back(uv);
 		}
@@ -73,6 +73,7 @@ void Star::loadOBJ(const char *path, std::vector<glm::vec3> &out_vertices,
 				std::getline(ss2, index, '/');
 				normalIndex[i] = std::stoul(index);
 			}
+			std::cerr << std::endl;
 			for (int i = 0; i < 3; i++)
 			{
 				vertexIndices.push_back(vertexIndex[i]);
@@ -125,6 +126,8 @@ void Star::drawStar(double cx, double cy, double cz,
   mat[2] = Z0;   mat[6] = Z1;   mat[10] = Z2;   mat[14] = 0;
   mat[3] =  0;   mat[7] =  0;   mat[11] =  0;   mat[15] = 1;
 
+  //float em[] = {1,1,1,1};
+
   // save current transforms
   glPushMatrix();
 
@@ -135,6 +138,9 @@ void Star::drawStar(double cx, double cy, double cz,
   glScaled(scale, scale, scale);
 
 
+
+  glEnable(GL_TEXTURE_2D);
+  //glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,em);
   star_tex->bind();
   glBegin(GL_TRIANGLES);
   for (int i = 0; i < star_vertices.size(); i++)
@@ -145,6 +151,7 @@ void Star::drawStar(double cx, double cy, double cz,
   }
   glEnd();
   star_tex->release();
+  glDisable(GL_TEXTURE_2D);
 
   glPopMatrix();
 }
