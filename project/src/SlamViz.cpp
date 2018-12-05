@@ -290,8 +290,6 @@ void SlamViz::paintGL()
       
    }
    gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cosd(ph),0);
-   // track pose if pose tracking enabled
-   // glTranslated(-v_x,-v_y,-v_z);
 
   
    glColor3f(1,1,1);
@@ -314,58 +312,6 @@ void SlamViz::paintGL()
    Scene(true);
    shadow_shader->release();
 
-
-
-   dispLandmarks();
-
-   if (axes)
-     drawAxes(2.0, true);
-   
-   if (disp_sky)
-   {
-      Sky(3.0*dim);
-   }
-   else
-   {
-      displayGrid(5);
-   }
-
-   
-   if (disp_prev_poses)
-   {
-      float num_poses = 15.0;
-      for (int i = prev_poses.size()-1; i >= 0; i--)
-      {
-         glPushMatrix();
-         
-         if (axes)
-         {
-            glRotated(-90.0,1.0,0.0,0.0);
-            glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
-            drawAxes(0.5,false);
-         }
-         else
-         {
-            double max_age = 20.0;
-            double age = cur_pose.timestamp - prev_poses[i].timestamp;
-            age = std::max(age, 1.0);
-            if (num_poses > 0 && 
-               cur_pose.timestamp - prev_poses[i].timestamp < max_age)
-            {
-               float x = prev_poses[i].T_WS[3][0];
-               float z = -prev_poses[i].T_WS[3][1];
-               float y = prev_poses[i].T_WS[3][2];
-               glTranslatef(x,y,z);
-
-               smoke->DrawSmoke(Ex+v_x,Ey+v_y,Ez+v_z, 
-                                v_x,v_y,v_z, 
-                                0.05*max_age/age);
-               num_poses--;
-            }
-         }
-         glPopMatrix();
-      }
-   }
    
    if (mode)
    {
@@ -699,8 +645,6 @@ void SlamViz::initShaders()
       close();
    if (!shadow_shader->link())
       close();
-   //if (!shadow_shader.bind())
-   //   close();
 }
 
 void SlamViz::initMap()
@@ -730,11 +674,6 @@ void SlamViz::initMap()
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-
-   //glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);
-   //glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);
-   //glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-   //glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 
    //  Set automatic texture generation mode to Eye Linear
    glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
@@ -866,20 +805,17 @@ void SlamViz::Scene(bool light)
       glFuncs->glEnable(GL_TEXTURE_2D);
    }
    
-   //glPushMatrix();
-   //  Draw scene
-   // glRotated(-90.0,1.0,0.0,0.0);
-   // glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
+
    double pdim = 2.0;
    glFuncs->glEnable(GL_TEXTURE_2D);
    texture[0]->bind();
    glColor3d(1.0,1.0,1.0);
    glBegin(GL_QUADS);
    glNormal3d(1.0,0.0,0.0);
-   glTexCoord2f(0.0,0.0); glVertex3d(-2.0, 0, -pdim);
-   glTexCoord2f(1.0,0.0); glVertex3d(-2.0, 2.0*pdim, -pdim);
-   glTexCoord2f(1.0,1.0); glVertex3d(-2.0, 2.0*pdim, pdim);
-   glTexCoord2f(0.0,1.0); glVertex3d(-2.0, 0, pdim);
+   glTexCoord2f(0.0,0.0); glVertex3d(-pdim/2.0, 0, -pdim);
+   glTexCoord2f(1.0,0.0); glVertex3d(-pdim/2.0, 2.0*pdim, -pdim);
+   glTexCoord2f(1.0,1.0); glVertex3d(-pdim/2.0, 2.0*pdim, pdim);
+   glTexCoord2f(0.0,1.0); glVertex3d(-pdim/2.0, 0, pdim);
    glEnd();
 
    double qdim = 2.0;
@@ -898,11 +834,7 @@ void SlamViz::Scene(bool light)
                        0,0,1,
                        1,0,0);
 
-   //plane->drawAirplane(-1,1,0, 0,0,1, 0,1,0);
 
-   //glPopMatrix();
-
-   dispLandmarks();
    
    
    if (light) 
