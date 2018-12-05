@@ -81,14 +81,6 @@ void SmokeBB::DrawObject(float scale)
 		glTexCoord2f(0.5+0.45*Cosd(th), 0.5+0.45*Sind(th));
 		glVertex3d(0.5*Cosd(th),0.5*Sind(th),0.0);
 	}
-	/*
-	glBegin(GL_QUADS);
-	glNormal3f(0.0,0.0,1.0);
-	glTexCoord2f(0.0,0.0); glVertex3d(-0.5,-0.5,0.0);
-	glTexCoord2f(1.0,0.0); glVertex3d(0.5,-0.5,0.0);
-	glTexCoord2f(1.0,1.0); glVertex3d(0.5,0.5,0.0);
-	glTexCoord2f(0.0,1.0); glVertex3d(-0.5,0.5,0.0);
-	*/
 	glEnd();
 	smoke_tex->release();
 	glDisable(GL_BLEND);
