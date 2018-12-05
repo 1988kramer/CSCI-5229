@@ -371,7 +371,7 @@ void SlamViz::paintGL()
    
    if (disp_prev_poses)
    {
-      float num_poses = 10.0;
+      float num_poses = 15.0;
       for (int i = prev_poses.size()-1; i >= 0; i--)
       {
          glPushMatrix();
@@ -384,7 +384,7 @@ void SlamViz::paintGL()
          }
          else
          {
-            double max_age = 10.0;
+            double max_age = 20.0;
             double age = cur_pose.timestamp - prev_poses[i].timestamp;
             age = std::max(age, 1.0);
             if (num_poses > 0 && 
@@ -397,7 +397,7 @@ void SlamViz::paintGL()
 
                smoke->DrawSmoke(Ex+v_x,Ey+v_y,Ez+v_z, 
                                 v_x,v_y,v_z, 
-                                0.25*max_age/age);
+                                0.05*max_age/age);
                num_poses--;
             }
          }

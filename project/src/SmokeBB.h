@@ -1,6 +1,7 @@
 #ifndef SMOKEBB_H
 #define SMOKEBB_H
 
+#include "CSCIx229.h"
 #include <QOpenGLTexture>
 #include <iostream>
 #include <math.h>
