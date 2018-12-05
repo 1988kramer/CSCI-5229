@@ -33,9 +33,9 @@ SlamViz::SlamViz(QWidget* parent)
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
    mode = true;
-   timer = new QTimer(this);
-   connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
-   timer->start(16);
+   //timer = new QTimer(this);
+   //connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+   //timer->start(16);
    pose_file = new std::ifstream();
    pose_file->open("pose_log.txt");
    lmrk_file = new std::ifstream();
@@ -128,7 +128,7 @@ void SlamViz::setDIM(double DIM)
    if (mode)
       project(60,asp/2,dim);
    else
-      project(60,asp/2,dim);
+      project(60,asp,dim);
    update();     //  Request redisplay
 }
 
@@ -202,10 +202,7 @@ void SlamViz::initializeGL()
    initializeOpenGLFunctions();
    initializeGLFunctions();
    glFuncs = QOpenGLContext::currentContext()->functions();
-   glFuncs->glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
-   glFuncs->glEnable(GL_CULL_FACE);
-   glFuncs->glDepthFunc(GL_LEQUAL);
-   glFuncs->glPolygonOffset(4,0);
+   
    setMouseTracking(true);  //  Ask for mouse events
    texture[0] = new QOpenGLTexture(QImage(QString("yellow_fabric.bmp")));
    texture[1] = new QOpenGLTexture(QImage(QString("metal.bmp")));
@@ -214,7 +211,12 @@ void SlamViz::initializeGL()
    plane = new airplane(texture,3,glFuncs);
    star = new Star();
    smoke = new SmokeBB();
-   //initShaders();
+
+   glFuncs->glEnable(GL_DEPTH_TEST); //  Enable Z-buffer depth testing
+   glFuncs->glDepthFunc(GL_LEQUAL);
+   glFuncs->glPolygonOffset(4,0);
+
+   initShaders();
    initMap();
 }
 
@@ -284,65 +286,23 @@ void SlamViz::paintGL()
       //glRotatef(ph,1,0,0);
       //glRotatef(th,0,1,0);
       project(60,asp,dim);
-      glFuncs->glViewport(0,0,size.width()/2,size.height());
+      glFuncs->glViewport(0,0,size.width(),size.height());
       
    }
    gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cosd(ph),0);
    // track pose if pose tracking enabled
-   glTranslated(-v_x,-v_y,-v_z);
+   // glTranslated(-v_x,-v_y,-v_z);
 
-   /*
-
-   //  Translate intensity to color vectors
-   float Ambient[]   = {float(0.01*ambient),float(0.01*ambient),float(0.01*ambient),1.0};
-   float Diffuse[]   = {float(0.01*diffuse),float(0.01*diffuse),float(0.01*diffuse),1.0};
-   float Specular[]  = {float(0.01*specular),float(0.01*specular),float(0.01*specular),1.0};
-   */
   
    glColor3f(1,1,1);
-
-   /*
-   GLuint vertex_buffer;
-   glFuncs->glGenBuffers(1, &vertex_buffer);
-   glFuncs->glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-   glFuncs->glBufferData(GL_ARRAY_BUFFER, star_vertices.size()*sizeof(glm::vec3),&star_vertices[0],GL_STATIC_DRAW);
    
-   Gluint uv_buffer;
-   glFuncs->glGenBuffers(1, &uv_buffer);
-   glFuncs->glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
-   glFuncl->glBufferData(GL_ARRAY_BUFFER, star_uvs.size()*sizeof(glm::vec2), &star_uvs[0], GL_STATIC_DRAW);
-   */
-
-   
-
-   /*
-   //  OpenGL should normalize normal vectors
-   glEnable(GL_NORMALIZE);
-   //  Enable lighting
-   glEnable(GL_LIGHTING);
-   //  Location of viewer for specular calculations
-   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,local);
-   //  glColor sets ambient and diffuse color materials
-   glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-   glEnable(GL_COLOR_MATERIAL);
-   //  Enable light 0
-   glEnable(GL_LIGHT0);
-   //  Set ambient, diffuse, specular components and position of light 0
-   glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
-   glLightfv(GL_LIGHT0,GL_DIFFUSE ,Diffuse);
-   glLightfv(GL_LIGHT0,GL_SPECULAR,Specular);
-   glLightfv(GL_LIGHT0,GL_POSITION,Position);
-   //if (!mode && pose_track)
-   //   glTranslated(-x,-y,-z);
-   */
    ball(Lpos[0],Lpos[1],Lpos[2],0.25);
-   /*
-   shadow_shader->bind();
-   id = shadow_shader->uniformLocation("tex");
-   if (id >= 0) glFuncs->glUniform1i(id, 0);
-   id = shadow_shader->uniformLocation("depth");
-   if (id >= 0) glFuncs->glUniform1i(id, 1);
+   
+   shadow_shader->bind(); 
+   shadow_shader->setUniformValue("tex", GLint(0));
+   shadow_shader->setUniformValue("depth", GLint(1));
 
+   
    glFuncs->glActiveTexture(GL_TEXTURE1);
    glTexGendv(GL_S, GL_EYE_PLANE, Svec);
    glTexGendv(GL_T, GL_EYE_PLANE, Tvec);
@@ -350,11 +310,13 @@ void SlamViz::paintGL()
    glTexGendv(GL_Q, GL_EYE_PLANE, Qvec);
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_COMPARE_R_TO_TEXTURE);
    glFuncs->glActiveTexture(GL_TEXTURE0);
-   */
+   
    Scene(true);
-   //shadow_shader->release();
+   shadow_shader->release();
 
-   //dispLandmarks();
+
+
+   dispLandmarks();
 
    if (axes)
      drawAxes(2.0, true);
@@ -435,7 +397,7 @@ void SlamViz::Vertex(double th,double ph)
 {
    double x = Sind(th)*Cosd(ph);
    double y = Cosd(th)*Cosd(ph);
-   double z =         Sind(ph);
+   double z =          Sind(ph);
    //  For a sphere at the origin, the position
    //  and normal vectors are the same
    glNormal3d(x,y,z);
@@ -446,8 +408,6 @@ void SlamViz::ball(double x,double y,double z,double r)
 {
    int th,ph;
    int inc = 30;
-   float yellow[] = {1.0,1.0,0.0,1.0};
-   float Emission[]  = {0.0,0.0,float(0.01*emission),1.0};
    //  Save transformation
    glPushMatrix();
    //  Offset, scale and rotate
@@ -455,9 +415,7 @@ void SlamViz::ball(double x,double y,double z,double r)
    glScaled(r,r,r);
    //  White ball
    glColor3f(1,1,1);
-   glMaterialf(GL_FRONT,GL_SHININESS,shiny);
-   glMaterialfv(GL_FRONT,GL_SPECULAR,yellow);
-   glMaterialfv(GL_FRONT,GL_EMISSION,Emission);
+
    //  Bands of latitude
    for (ph=-90;ph<90;ph+=inc)
    {
@@ -540,6 +498,7 @@ void SlamViz::Sky(double D)
 {
    glColor3f(1,1,1);
    glFuncs->glEnable(GL_TEXTURE_2D);
+   glFuncs->glEnable(GL_CULL_FACE);
 
    //  Sides
    sky->bind();
@@ -566,7 +525,6 @@ void SlamViz::Sky(double D)
    glEnd();
 
    //  Top and bottom
-   //sky[1]->bind();
    glBegin(GL_QUADS);
    glTexCoord2f(0.5,0.3334); glVertex3f(+D,+D,-D);
    glTexCoord2f(0.5,0.0); glVertex3f(+D,+D,+D);
@@ -580,6 +538,7 @@ void SlamViz::Sky(double D)
    glEnd();
    sky->release();
    glFuncs->glDisable(GL_TEXTURE_2D);
+   glFuncs->glDisable(GL_CULL_FACE);
 }
 
 void SlamViz::readPose()
@@ -765,7 +724,7 @@ void SlamViz::initMap()
    glFuncs->glBindTexture(GL_TEXTURE_2D, shadowtex);
    glFuncs->glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadowdim, shadowdim, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
-   //glFuncs->glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+   glFuncs->glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
    //  Set texture mapping to clamp and linear interpolation
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
@@ -833,6 +792,7 @@ void SlamViz::shadowMap(void)
    glClear(GL_DEPTH_BUFFER_BIT);
 
    Scene(false);
+
 
    glGetDoublev(GL_PROJECTION_MATRIX,Lproj);
    glGetDoublev(GL_MODELVIEW_MATRIX,Lmodel);
@@ -906,17 +866,41 @@ void SlamViz::Scene(bool light)
       glFuncs->glEnable(GL_TEXTURE_2D);
    }
    
-   glPushMatrix();
+   //glPushMatrix();
    //  Draw scene
-   glRotated(-90.0,1.0,0.0,0.0);
-   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
-   plane->drawAirplane(0,0,0,
+   // glRotated(-90.0,1.0,0.0,0.0);
+   // glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
+   double pdim = 2.0;
+   glFuncs->glEnable(GL_TEXTURE_2D);
+   texture[0]->bind();
+   glColor3d(1.0,1.0,1.0);
+   glBegin(GL_QUADS);
+   glNormal3d(1.0,0.0,0.0);
+   glTexCoord2f(0.0,0.0); glVertex3d(-2.0, 0, -pdim);
+   glTexCoord2f(1.0,0.0); glVertex3d(-2.0, 2.0*pdim, -pdim);
+   glTexCoord2f(1.0,1.0); glVertex3d(-2.0, 2.0*pdim, pdim);
+   glTexCoord2f(0.0,1.0); glVertex3d(-2.0, 0, pdim);
+   glEnd();
+
+   double qdim = 2.0;
+   glColor3d(1.0,1.0,1.0);
+   glBegin(GL_QUADS);
+   glNormal3d(0.0,1.0,0.0);
+   glTexCoord2f(0.0,0.0); glVertex3d(-qdim, -0.0, -qdim);
+   glTexCoord2f(1.0,0.0); glVertex3d(qdim, -0.0, -qdim);
+   glTexCoord2f(1.0,1.0); glVertex3d(qdim, -0.0, qdim);
+   glTexCoord2f(0.0,1.0); glVertex3d(-qdim, -0.0, qdim);
+   glEnd();
+   texture[0]->release();
+   glFuncs->glDisable(GL_TEXTURE_2D);
+
+   plane->drawAirplane(0,1,0,
                        0,0,1,
                        1,0,0);
 
-   //plane->drawAirplane(-1,0,0, 0,0,1, 1,0,0);
+   //plane->drawAirplane(-1,1,0, 0,0,1, 0,1,0);
 
-   glPopMatrix();
+   //glPopMatrix();
 
    dispLandmarks();
    
@@ -929,8 +913,8 @@ void SlamViz::Scene(bool light)
    {
       return;
    }
+
    
-   glFuncs->glDisable(GL_TEXTURE_2D);
 }
 
 void SlamViz::dispLandmarks()

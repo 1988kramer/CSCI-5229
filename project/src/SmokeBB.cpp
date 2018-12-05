@@ -85,6 +85,7 @@ void SmokeBB::DrawObject(float scale)
 	smoke_tex->release();
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
 }
 
 void SmokeBB::Normalize(float *a)

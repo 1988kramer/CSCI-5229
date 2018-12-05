@@ -609,7 +609,10 @@ void InitMap()
    // Attach shadow texture to frame buffer
    glGenFramebuffers(1,&framebuf);
    glBindFramebuffer(GL_FRAMEBUFFER,framebuf);
-   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowtex, 0);
+   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                          GL_TEXTURE_2D, shadowtex, 0);
+
+   //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowtex, 0);
    //  Don't write or read to visible color buffer
    glDrawBuffer(GL_NONE);
    glReadBuffer(GL_NONE);
