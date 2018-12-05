@@ -462,6 +462,8 @@ void SlamViz::displayGrid(double D)
 void SlamViz::Sky(double D)
 {
    glColor3f(1,1,1);
+   glPushMatrix();
+   glTranslated(v_x,v_y,v_z);
    glFuncs->glEnable(GL_TEXTURE_2D);
    glFuncs->glEnable(GL_CULL_FACE);
    glFuncs->glEnable(GL_LIGHTING);
@@ -511,6 +513,7 @@ void SlamViz::Sky(double D)
    sky->release();
    glFuncs->glDisable(GL_TEXTURE_2D);
    glFuncs->glDisable(GL_CULL_FACE);
+   glPopMatrix();
 }
 
 void SlamViz::readPose()
