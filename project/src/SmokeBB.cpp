@@ -67,6 +67,7 @@ void SmokeBB::DrawSmoke(float cam_x, float cam_y, float cam_z,
 void SmokeBB::DrawObject(float scale)
 {
 	glEnable(GL_TEXTURE_2D);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	smoke_tex->bind();
@@ -85,7 +86,7 @@ void SmokeBB::DrawObject(float scale)
 	smoke_tex->release();
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 }
 
 void SmokeBB::Normalize(float *a)

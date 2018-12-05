@@ -33,9 +33,9 @@ SlamViz::SlamViz(QWidget* parent)
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
    mode = true;
-   //timer = new QTimer(this);
-   //connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
-   //timer->start(16);
+   timer = new QTimer(this);
+   connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+   timer->start(16);
    pose_file = new std::ifstream();
    pose_file->open("pose_log.txt");
    lmrk_file = new std::ifstream();
@@ -94,10 +94,7 @@ void SlamViz::togglePrevPoses(void)
 void SlamViz::toggleDisplay(void)
 {
    mode = !mode;
-   if (mode)
-      project(60,asp/2,dim);
-   else
-      project(60,asp,dim);
+   project(60,asp,dim);
    update();
 }
 
@@ -113,7 +110,7 @@ void SlamViz::switchTexture(void)
 void SlamViz::reset(void)
 {
    th = ph = 0;  //  Set parameter
-   shadowMap();
+   //shadowMap();
    update();     //  Request redisplay
 }
 
@@ -124,11 +121,8 @@ void SlamViz::setDIM(double DIM)
 {
    dim = DIM;    //  Set parameter
    //emit dimen(QString::number(dim));
-   shadowMap();
-   if (mode)
-      project(60,asp/2,dim);
-   else
-      project(60,asp,dim);
+   //shadowMap();
+   project(60,asp,dim);
    update();     //  Request redisplay
 }
 
@@ -172,7 +166,7 @@ void SlamViz::mouseMoveEvent(QMouseEvent* e)
    }
 
    pos = e->pos();           //  Remember new location
-   shadowMap();
+   //shadowMap();
    update();                 //  Request redisplay
 }
 
@@ -216,8 +210,8 @@ void SlamViz::initializeGL()
    glFuncs->glDepthFunc(GL_LEQUAL);
    glFuncs->glPolygonOffset(4,0);
 
-   initShaders();
-   initMap();
+   //initShaders();
+   //initMap();
 }
 
 void SlamViz::timerEvent(void)
@@ -230,7 +224,7 @@ void SlamViz::timerEvent(void)
       addToPrevPoses();
       readPose();
       readLmrks();
-      shadowMap();
+      //shadowMap();
       updateGL();
    }
    
@@ -246,10 +240,8 @@ void SlamViz::resizeGL(int width, int height)
    //  Viewport is whole screen
    glFuncs->glViewport(0,0,width,height);
    //  Set projection
-   if (mode)
-      project(60,asp/2,dim);
-   else
-      project(60,asp,dim);
+
+   project(60,asp,dim);
 }
 
 //
@@ -273,31 +265,26 @@ void SlamViz::paintGL()
    // set projection
    if (mode)
    {
-      
-      //gluLookAt(Ex+x,Ey+y,Ez+z, x,y,z, 0,Cos(ph),0);
-      project(60,asp/2,dim);
-      glFuncs->glViewport(0,0,size.width()/2,size.height());
+      project(60,asp,dim);
+      gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cosd(ph),0);
       
    }
    //  Orthogonal - set world orientation
    else
    {
-      
-      //glRotatef(ph,1,0,0);
-      //glRotatef(th,0,1,0);
       project(60,asp,dim);
-      glFuncs->glViewport(0,0,size.width(),size.height());
-      
+      glRotatef(ph,1,0,0);
+      glRotatef(th,0,1,0);
    }
-   gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cosd(ph),0);
+   
    // track pose if pose tracking enabled
-   // glTranslated(-v_x,-v_y,-v_z);
+   glTranslated(-v_x,-v_y,-v_z);
 
   
    glColor3f(1,1,1);
    
    ball(Lpos[0],Lpos[1],Lpos[2],0.25);
-   
+   /*
    shadow_shader->bind(); 
    shadow_shader->setUniformValue("tex", GLint(0));
    shadow_shader->setUniformValue("depth", GLint(1));
@@ -310,11 +297,9 @@ void SlamViz::paintGL()
    glTexGendv(GL_Q, GL_EYE_PLANE, Qvec);
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_COMPARE_R_TO_TEXTURE);
    glFuncs->glActiveTexture(GL_TEXTURE0);
-   
+   */
    Scene(true);
-   shadow_shader->release();
-
-
+   //shadow_shader->release();
 
    dispLandmarks();
 
@@ -365,26 +350,6 @@ void SlamViz::paintGL()
          }
          glPopMatrix();
       }
-   }
-   
-   if (mode)
-   {
-      QSize size = this->size();
-      int n, ix=size.width()/2+5,iy=size.height()-5;
-      project(0,asp/2,1);
-      glViewport(size.width()/2+1,0,size.width()/2,size.height());
-      glFuncs->glActiveTexture(GL_TEXTURE1);
-      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_NONE);
-      glEnable(GL_TEXTURE_2D);
-      glColor3f(1.0f,1.0f,1.0f);
-      glBegin(GL_QUADS);
-      glMultiTexCoord2f(GL_TEXTURE1,0,0);glVertex2f(-1,-1);
-      glMultiTexCoord2f(GL_TEXTURE1,1,0);glVertex2f(+1,-1);
-      glMultiTexCoord2f(GL_TEXTURE1,1,1);glVertex2f(+1,+1);
-      glMultiTexCoord2f(GL_TEXTURE1,0,1);glVertex2f(-1,+1);
-      glEnd();
-      glDisable(GL_TEXTURE_2D);
-      glFuncs->glActiveTexture(GL_TEXTURE0);
    }
    //  Done
    glFlush();
@@ -441,10 +406,10 @@ void SlamViz::project(double fov, double asp, double dim)
    glLoadIdentity();
    //if (asp>1)
    //   glOrtho(-dim*asp, +dim*asp, -dim, +dim, -8*dim, + 8*dim);
-   if (fov)
+   if (mode)
       gluPerspective(fov,asp,dim/16,16*dim);
    else
-      glOrtho(-asp*dim, asp*dim, -dim, +dim, -dim, +dim);
+      glOrtho(-asp*dim, asp*dim, -dim, +dim, -dim*8, +8.0*dim);
 
    //  Back to model view
    glMatrixMode(GL_MODELVIEW);
@@ -455,7 +420,7 @@ void SlamViz::displayGrid(double D)
 {
 
    double limit = 2.0*dim;
-
+   glFuncs->glDisable(GL_LIGHTING);
    glBegin(GL_LINES);
    glColor3f(1.0,0.0,0.0);
    //glLineWidth(1.0);
@@ -499,25 +464,30 @@ void SlamViz::Sky(double D)
    glColor3f(1,1,1);
    glFuncs->glEnable(GL_TEXTURE_2D);
    glFuncs->glEnable(GL_CULL_FACE);
+   glFuncs->glEnable(GL_LIGHTING);
 
    //  Sides
    sky->bind();
    glBegin(GL_QUADS);
+   glNormal3d(0.0,0.0,1.0);
    glTexCoord2f(0.25,0.6667); glVertex3f(-D,-D,-D);
    glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
    glTexCoord2f(0.5,0.3333); glVertex3f(+D,+D,-D);
    glTexCoord2f(0.25,0.3333); glVertex3f(-D,+D,-D);
 
+   glNormal3d(-1.0,0.0,0.0);
    glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
    glTexCoord2f(0.75,0.6667); glVertex3f(+D,-D,+D);
    glTexCoord2f(0.75,0.3333); glVertex3f(+D,+D,+D);
    glTexCoord2f(0.5,0.3333); glVertex3f(+D,+D,-D);
 
+   glNormal3d(0.0,0.0,-1.0);
    glTexCoord2f(0.75,0.6667); glVertex3f(+D,-D,+D);
    glTexCoord2f(1.0,0.6667); glVertex3f(-D,-D,+D);
    glTexCoord2f(1.0,0.3333); glVertex3f(-D,+D,+D);
    glTexCoord2f(0.75,0.3333); glVertex3f(+D,+D,+D);
 
+   glNormal3d(1.0,0.0,0.0);
    glTexCoord2f(0.0,0.6667); glVertex3f(-D,-D,+D);
    glTexCoord2f(0.25,0.6667); glVertex3f(-D,-D,-D);
    glTexCoord2f(0.25,0.3333); glVertex3f(-D,+D,-D);
@@ -526,11 +496,13 @@ void SlamViz::Sky(double D)
 
    //  Top and bottom
    glBegin(GL_QUADS);
+   glNormal3d(0.0,-1.0,0.0);
    glTexCoord2f(0.5,0.3334); glVertex3f(+D,+D,-D);
    glTexCoord2f(0.5,0.0); glVertex3f(+D,+D,+D);
    glTexCoord2f(0.25,0.0); glVertex3f(-D,+D,+D);
    glTexCoord2f(0.25,0.3334); glVertex3f(-D,+D,-D);
 
+   glNormal3d(0.0,1.0,0.0);
    glTexCoord2f(0.25,1.0); glVertex3f(-D,-D,+D);
    glTexCoord2f(0.5,1.0); glVertex3f(+D,-D,+D);
    glTexCoord2f(0.5,0.6667); glVertex3f(+D,-D,-D);
@@ -635,6 +607,7 @@ void SlamViz::readLmrks()
 
 void SlamViz::drawAxes(double len, bool draw_labels)
 {
+   glDisable(GL_LIGHTING);
    glBegin(GL_LINES);
    glColor3d(1.0,0.0,0.0);
    glVertex3d(0.0,0.0,0.0);
@@ -827,8 +800,8 @@ void SlamViz::shadowMap(void)
 void SlamViz::Light(bool light)
 {
    //  Set light position
-   Lpos[0] = 2;
-   Lpos[1] = 2;
+   Lpos[0] = 2.5*dim;
+   Lpos[1] = 2.5*dim;
    Lpos[2] = 0;
    Lpos[3] = 1;
 
@@ -866,41 +839,16 @@ void SlamViz::Scene(bool light)
       glFuncs->glEnable(GL_TEXTURE_2D);
    }
    
-   //glPushMatrix();
+   glPushMatrix();
    //  Draw scene
-   // glRotated(-90.0,1.0,0.0,0.0);
-   // glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
-   double pdim = 2.0;
-   glFuncs->glEnable(GL_TEXTURE_2D);
-   texture[0]->bind();
-   glColor3d(1.0,1.0,1.0);
-   glBegin(GL_QUADS);
-   glNormal3d(1.0,0.0,0.0);
-   glTexCoord2f(0.0,0.0); glVertex3d(-2.0, 0, -pdim);
-   glTexCoord2f(1.0,0.0); glVertex3d(-2.0, 2.0*pdim, -pdim);
-   glTexCoord2f(1.0,1.0); glVertex3d(-2.0, 2.0*pdim, pdim);
-   glTexCoord2f(0.0,1.0); glVertex3d(-2.0, 0, pdim);
-   glEnd();
+   glRotated(-90.0,1.0,0.0,0.0);
+   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
 
-   double qdim = 2.0;
-   glColor3d(1.0,1.0,1.0);
-   glBegin(GL_QUADS);
-   glNormal3d(0.0,1.0,0.0);
-   glTexCoord2f(0.0,0.0); glVertex3d(-qdim, -0.0, -qdim);
-   glTexCoord2f(1.0,0.0); glVertex3d(qdim, -0.0, -qdim);
-   glTexCoord2f(1.0,1.0); glVertex3d(qdim, -0.0, qdim);
-   glTexCoord2f(0.0,1.0); glVertex3d(-qdim, -0.0, qdim);
-   glEnd();
-   texture[0]->release();
-   glFuncs->glDisable(GL_TEXTURE_2D);
-
-   plane->drawAirplane(0,1,0,
+   plane->drawAirplane(0,0,0,
                        0,0,1,
                        1,0,0);
 
-   //plane->drawAirplane(-1,1,0, 0,0,1, 0,1,0);
-
-   //glPopMatrix();
+   glPopMatrix();
 
    dispLandmarks();
    
