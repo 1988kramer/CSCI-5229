@@ -81,6 +81,7 @@ void SlamViz::setFPS(int fps)
 		{
 			paused = false;
 			timer->start(frame_ms);
+			emit(dimen("Viewer running"));
 		}
 		else
 		{
@@ -91,6 +92,7 @@ void SlamViz::setFPS(int fps)
 	{
 		paused = true;
 		timer->stop();
+		emit dimen("Viewer paused");
 	}
 }
 
@@ -188,6 +190,10 @@ void SlamViz::mouseMoveEvent(QMouseEvent* e)
       th = (th+d.x())%360;      //  Translate x movement to azimuth
       ph = (ph+d.y())%360;      //  Translate y movement to elevation
    }
+   if (l_mouse)
+   {
+
+   }
 
    pos = e->pos();           //  Remember new location
    //shadowMap();
@@ -234,6 +240,8 @@ void SlamViz::initializeGL()
    glFuncs->glDepthFunc(GL_LEQUAL);
    glFuncs->glPolygonOffset(4,0);
 
+   emit dimen("Viewer running");
+
    //initShaders();
    //initMap();
 }
@@ -241,8 +249,12 @@ void SlamViz::initializeGL()
 void SlamViz::timerEvent(void)
 {
   addToPrevPoses();
-  readPose();
-  readLmrks();
+	bool read_success = readPose() && readLmrks();
+	if (!read_success)
+	{
+		timer->stop();
+		emit dimen("Run Ended");
+	}
   //shadowMap();
   updateGL();
 }
@@ -282,22 +294,21 @@ void SlamViz::paintGL()
    // set projection
    if (mode)
    {
-      project(60,asp,dim);
-      gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cosd(ph),0);
-      
+   	 project(60,asp,dim);
+     gluLookAt(Ex,Ey,Ez, 0,0,0, 0,Cosd(ph),0);
+   	 //gluLookAt(v_x,v_y,v_z, v_x-1,v_y,v_z, 0,1,0);
    }
    //  Orthogonal - set world orientation
    else
    {
-      project(60,asp,dim);
-      glRotatef(ph,1,0,0);
-      glRotatef(th,0,1,0);
+     project(60,asp,dim);
+     glRotatef(ph,1,0,0);
+     glRotatef(th,0,1,0);
    }
    
    // track pose if pose tracking enabled
    glTranslated(-v_x,-v_y,-v_z);
 
-  
    glColor3f(1,1,1);
    
    ball(Lpos[0],Lpos[1],Lpos[2],0.25);
@@ -533,7 +544,7 @@ void SlamViz::Sky(double D)
    glPopMatrix();
 }
 
-void SlamViz::readPose()
+bool SlamViz::readPose()
 {
    std::string line;
    if (std::getline(*pose_file,line))
@@ -571,10 +582,12 @@ void SlamViz::readPose()
       {
          v_x = v_y = v_z = 0;
       }
+      return true;
    }
+   return false;
 }
 
-void SlamViz::readLmrks()
+bool SlamViz::readLmrks()
 {
    std::string line;
    if (std::getline(*lmrk_file, line))
@@ -622,7 +635,9 @@ void SlamViz::readLmrks()
          lmrks.erase(marginalized_ids[i]);
          inactive_lmrks.insert(std::pair<unsigned long, Landmark>(marginalized_ids[i],marginalized));
       }
+      return true;
    }
+   return false;
 }
 
 void SlamViz::drawAxes(double len, bool draw_labels)
@@ -861,6 +876,7 @@ void SlamViz::Scene(bool light)
    
    glPushMatrix();
    //  Draw scene
+
    glRotated(-90.0,1.0,0.0,0.0);
    glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
 

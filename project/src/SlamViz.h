@@ -139,8 +139,8 @@ private:
 	void Sky(double D);
 	void displayGrid(double D);
 	void project(double fov, double asp, double dim);
-	void readPose();
-	void readLmrks();
+	bool readPose();
+	bool readLmrks();
 	void drawAxes(double len, bool draw_labels);
 	void addToPrevPoses();
 
