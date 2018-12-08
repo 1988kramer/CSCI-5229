@@ -37,6 +37,7 @@ Viewer::Viewer(QWidget* parent)
    QCheckBox* sky_button = new QCheckBox("Show Skybox");
    QCheckBox* inactive = new QCheckBox("Show Inactive Lmrks");
    QDoubleSpinBox* land_lower = new QDoubleSpinBox();
+   QSpinBox* fps = new QSpinBox();
    QCheckBox* track_pose = new QCheckBox("Track Pose With Cam");
    QCheckBox* prev_poses = new QCheckBox("Show Prev Poses");
 
@@ -46,6 +47,11 @@ Viewer::Viewer(QWidget* parent)
    land_lower->setSingleStep(0.01);
    land_lower->setRange(0.01,1.0);
    land_lower->setValue(0.03);
+
+   fps->setSingleStep(5);
+   fps->setRange(0,60);
+   fps->setValue(20);
+
 
    //  Connect valueChanged() signals to Lorenz slots
    connect(reset, SIGNAL(clicked(void)), slam_viz, SLOT(reset(void)));
@@ -57,6 +63,7 @@ Viewer::Viewer(QWidget* parent)
    connect(land_lower, SIGNAL(valueChanged(double)), slam_viz, SLOT(setLmrkDispBound(double)));
    connect(track_pose, SIGNAL(clicked(void)), slam_viz, SLOT(togglePoseTrack(void)));
    connect(prev_poses, SIGNAL(clicked(void)), slam_viz, SLOT(togglePrevPoses(void)));
+   connect(fps, SIGNAL(valueChanged(int)), slam_viz, SLOT(setFPS(int)));
    //  Connect lorenz signals to display widgets
    connect(slam_viz, SIGNAL(dimen(QString)), dim, SLOT(setText(QString)));
 
@@ -76,14 +83,15 @@ Viewer::Viewer(QWidget* parent)
    QGroupBox* dspbox = new QGroupBox("Display");
    QGridLayout* dsplay = new QGridLayout;
    dsplay->addWidget(reset,1,0);
-   dsplay->addWidget(display,4,0);
+   dsplay->addWidget(display,5,0);
 
    dsplay->addWidget(axes,6,0);
    dsplay->addWidget(texture,2,0);
    dsplay->addWidget(sky_button,7,0);
    dsplay->addWidget(new QLabel("Minimum Lmrk Qual"),3,1);
    dsplay->addWidget(land_lower,3,0);
-   dsplay->addWidget(dim,5,0);
+   dsplay->addWidget(fps,4,0);
+   //dsplay->addWidget(dim,5,0);
    dsplay->addWidget(inactive,8,0);
    dsplay->addWidget(track_pose,9,0);
    dsplay->addWidget(prev_poses,10,0);

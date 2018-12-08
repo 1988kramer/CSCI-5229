@@ -33,9 +33,11 @@ SlamViz::SlamViz(QWidget* parent)
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
    mode = true;
+   paused = false;
+   frame_ms = 50;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
-   timer->start(16);
+   timer->start(frame_ms);
    pose_file = new std::ifstream();
    pose_file->open("pose_log.txt");
    lmrk_file = new std::ifstream();
@@ -68,6 +70,28 @@ void SlamViz::setLmrkDispBound(double bound)
 {
    lmrk_lwr_bound = bound;
    update();
+}
+
+void SlamViz::setFPS(int fps)
+{
+	frame_ms = int((1.0/double(fps))*1000.0);
+	if (fps > 0)
+	{
+		if (paused)
+		{
+			paused = false;
+			timer->start(frame_ms);
+		}
+		else
+		{
+			timer->setInterval(frame_ms);
+		}
+	}
+	else
+	{
+		paused = true;
+		timer->stop();
+	}
 }
 
 void SlamViz::toggleInactive(void)
@@ -216,18 +240,11 @@ void SlamViz::initializeGL()
 
 void SlamViz::timerEvent(void)
 {
-   cur_time += 16;
-   zh = (zh + 1) % 360;
-   if (cur_time - last_time >= 64)
-   {
-      last_time = cur_time;
-      addToPrevPoses();
-      readPose();
-      readLmrks();
-      //shadowMap();
-      updateGL();
-   }
-   
+  addToPrevPoses();
+  readPose();
+  readLmrks();
+  //shadowMap();
+  updateGL();
 }
 
 //

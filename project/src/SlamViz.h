@@ -96,6 +96,8 @@ private:
 	std::vector<Pose> prev_poses;
 	std::map<unsigned long, Landmark> lmrks;
 	std::map<unsigned long, Landmark> inactive_lmrks;
+	int frame_ms; // time a single frame is displayed (inverse of fps)
+	bool paused; // is visualization paused?
 
 	QOpenGLShaderProgram *shadow_shader;
 	QOpenGLFunctions *glFuncs;
@@ -109,14 +111,15 @@ public slots:
 	void reset(void);  // Reset view angles and zoom 
 	void toggleAxes(void);
 	void toggleDisplay(void);
-  	void setDIM(double DIM);    //  Slot to set dim
-  	void switchTexture(void);
-  	void timerEvent(void);
-  	void toggleSky(void);
-  	void setLmrkDispBound(double bound);
-  	void toggleInactive(void);
-  	void togglePoseTrack(void);
-  	void togglePrevPoses(void);
+  void setDIM(double DIM);    //  Slot to set dim
+  void switchTexture(void);
+  void timerEvent(void);
+  void toggleSky(void);
+  void setLmrkDispBound(double bound);
+  void setFPS(int fps);
+  void toggleInactive(void);
+  void togglePoseTrack(void);
+  void togglePrevPoses(void);
 
 signals:
 	void angles(QString text); // Signal for display angles
