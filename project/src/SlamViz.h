@@ -105,7 +105,7 @@ private:
 
 public:
 	SlamViz(QWidget* parent=0);
-	QSize sizeHint() const {return QSize(400,400);}
+	QSize sizeHint() const {return QSize(512,512);}
 
 public slots:
 	void reset(void);  // Reset view angles and zoom 
