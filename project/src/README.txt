@@ -1,6 +1,6 @@
 SlamViz
 Author: Andrew Kramer
-Date: 11/28/2018
+Date: 12/9/2018
 
 Visualizer program for a sparse visual-inertial SLAM system. Shows the current 
 and previous poses of the robot and the landmarks being actively tracked by 
@@ -22,8 +22,13 @@ It provides the following options to the user:
     landmark's location
 - Toggle whether the camera view is centered on the origin or centered on 
   the robot's current estimated location
-- Toggle the display of previous poses
-
+- Toggle the display of previous poses, previous poses can be displayed as
+  - Sets of axes if the "show axes" box is checked
+  - A smoke trail that dissipates over time if "show axes" is unchecked
+- Change the playback speed of the visualization
+  - Positive speeds run the visualization forward
+  - Zero speed pauses the visualization
+  - Negative speed reverses the visualization
 
 To Build:
 
@@ -36,26 +41,42 @@ To Run:
 No input files need to be specified as these are currently hardcoded.
 
 
-Progress Assessment:
+Final Progress Assessment:
 
-I've accomplished all the points presented in the "to do by review" section of my progress report. I've added the option for a gridworld display, the piper cub model tracks the robot's pose, and a subset of the robot's previos poses are displayed as axes. I've also made several developments from the "to do after review" section of my progress report. I've added display of landmarks with the option to display inactive as well as active landmarks and I've added the option for the camera to track the robot's pose.
+Since the project review I've accomplished the following:
+ - Replaced the simple sphere landmarks with more complex objects
+   - Landmarks are now represented by a textured star model
+   - The star model is read from a .obj file using a function in Star.cpp
+ - Added option to display the robot's previous poses as a smoke trail
+   - The smoke trail is rendered as a series of transparent billboard 
+     polygons with a smoke texture applied
+   - The size of each polygon is a function of its age, so the smoke appears
+     to dissipate over time
+   - The functions used to render the smoke trail are found in SmokeBB.cpp
+ - Added option to adjust the playback speed of the visualization
+   - User can set zero playback speed to pause the visualization
+   - User can also set negative values to the playback speed to reverse
+     the visualization
+ - Changed skybox to center on the robot's position when the camera tracks
+   the robot's position
+   - This prevents the robot from leaving the skybox when the camera is 
+     tracking the robot's position and the view is zoomed in
+ - Changed the timer function so the animation is now much smoother
 
 
-Still To Do:
+Note on my original goals:
 
-- Add accurate scene shadowing using a shader program
-- Add smoke trail for previous poses using particles controlled by a shader
-- Make each landmark a light source using a shader
-  - Light intensity should be proportional to landmark quality
-  - Light color should change between active and inactive landmarks
-
-
-Optional To Do:
-
-- Add option to adjust playback speed
-- Add cockpit/first-person view
-- Use shader to render landmarks
-  - currently bogs down if all landmarks are displayed, even with low poly-count landmarks
+My initial goal with this project was to use a shader program to render
+shadows. I had also intended to use a shader program to generate particles
+for the robot's smoke trail. I was not successful in either of these efforts.
+I spent roughly 20 hours trying to implement shadow mapping for my program
+and I requested help from TAs twice. I was able to generate good depth maps 
+from the light source's perspective, but I couldn't use those depth maps to
+generate correct shadows in my scene. I eventually decided I should focus my 
+efforts elsewhere so I could at least have some progress to show by the 
+project's due date. This is why my project submission does not include shaders.
+If you're interested I would be happy to share my work on shadow mapping so
+you can see I did actually make some progress on it.
 
 
 Attributions:
