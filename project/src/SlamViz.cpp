@@ -29,12 +29,7 @@ SlamViz::SlamViz(QWidget* parent)
    framebuf = 0;
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
-   mode, run_fwd = true;
-   paused = false;
-   frame_ms = 50;
-   timer = new QTimer(this);
-   connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
-   timer->start(frame_ms);
+   mode = true;
 
    timestep = 0;
 
@@ -45,6 +40,13 @@ SlamViz::SlamViz(QWidget* parent)
    lmrk_file = new std::ifstream();
    lmrk_file->open("lmrk_log.txt");
    readLmrks();
+
+   run_fwd = true;
+   paused = false;
+   frame_ms = 50;
+   timer = new QTimer(this);
+   connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+   timer->start(frame_ms);
 }
 
 /********************************************************************/
