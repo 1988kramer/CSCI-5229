@@ -25,23 +25,26 @@ SlamViz::SlamViz(QWidget* parent)
    local     =   0;  // Local Viewer Model
    emission  =   0;  // Emission intensity (%)
    shiny   =   1;  // Shininess (value)
-   cur_time = 0.0;
-   last_time = 0.0;
-   last_stamp = 0.0;
    scale_factor = 2.0;
    framebuf = 0;
    light = pose_track = disp_inactive_lmrks = disp_prev_poses = disp_sky = axes = false; 
    lmrk_lwr_bound = 0.03;
-   mode = true;
+   mode, run_fwd = true;
    paused = false;
    frame_ms = 50;
    timer = new QTimer(this);
    connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
    timer->start(frame_ms);
+
+   timestep = 0;
+
    pose_file = new std::ifstream();
    pose_file->open("pose_log.txt");
+   readPoses();
+   
    lmrk_file = new std::ifstream();
    lmrk_file->open("lmrk_log.txt");
+   readLmrks();
 }
 
 /********************************************************************/
@@ -74,14 +77,22 @@ void SlamViz::setLmrkDispBound(double bound)
 
 void SlamViz::setFPS(int fps)
 {
-	frame_ms = int((1.0/double(fps))*1000.0);
-	if (fps > 0)
+	if (fps < 0)
+		run_fwd = false;
+	else
+		run_fwd = true;
+
+	frame_ms = std::abs(int((1.0/double(fps))*1000.0));
+	if (std::abs(fps) > 0)
 	{
 		if (paused)
 		{
 			paused = false;
 			timer->start(frame_ms);
-			emit(dimen("Viewer running"));
+			if (run_fwd)
+				emit(dimen("Viewer running forward"));
+			else
+				emit(dimen("Viewer running backward"));
 		}
 		else
 		{
@@ -240,7 +251,7 @@ void SlamViz::initializeGL()
    glFuncs->glDepthFunc(GL_LEQUAL);
    glFuncs->glPolygonOffset(4,0);
 
-   emit dimen("Viewer running");
+   emit dimen("Viewer running forward");
 
    //initShaders();
    //initMap();
@@ -248,15 +259,32 @@ void SlamViz::initializeGL()
 
 void SlamViz::timerEvent(void)
 {
-  addToPrevPoses();
-	bool read_success = readPose() && readLmrks();
-	if (!read_success)
+	timestep += (run_fwd? 1:-1);
+	if (run_fwd && timestep == poses.size() - 1)
 	{
 		timer->stop();
-		emit dimen("Run Ended");
+		emit dimen("End of run reached");
 	}
-  //shadowMap();
-  updateGL();
+	else if (!run_fwd && timestep == 0)
+	{
+		timer->stop();
+		emit dimen("Start of run reached");
+	}
+	else
+	{
+  	//shadowMap();
+  	if (pose_track)
+  	{
+  		v_x = poses[timestep].trans[0];
+  		v_y = poses[timestep].trans[1];
+  		v_z = poses[timestep].trans[2];
+  	}
+  	else
+  	{
+  		v_x = v_y = v_z = 0.0;
+  	}
+  	updateGL();
+	}
 }
 
 //
@@ -326,61 +354,64 @@ void SlamViz::paintGL()
    glFuncs->glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_COMPARE_R_TO_TEXTURE);
    glFuncs->glActiveTexture(GL_TEXTURE0);
    */
-   Scene(true);
-   //shadow_shader->release();
+  Scene(true);
+  //shadow_shader->release();
 
-   dispLandmarks();
+  dispLandmarks();
 
-   if (axes)
-     drawAxes(2.0, true);
+  if (axes)
+    drawAxes(2.0, true);
    
-   if (disp_sky)
-   {
-      Sky(3.0*dim);
-   }
-   else
-   {
-      displayGrid(5);
-   }
+  if (disp_sky)
+  {
+    Sky(3.0*dim);
+  }
+  else
+  {
+    displayGrid(5);
+  }
 
    
-   if (disp_prev_poses)
-   {
-      float num_poses = 15.0;
-      for (int i = prev_poses.size()-1; i >= 0; i--)
+  if (disp_prev_poses)
+  {
+    float num_poses = 15.0;
+    int pose_idx = timestep - 1;
+    while (pose_idx > 0 && num_poses > 0)
+    {
+      if (poses[pose_idx].display_prev)
       {
-         glPushMatrix();
-         
-         if (axes)
-         {
-            glRotated(-90.0,1.0,0.0,0.0);
-            glMultMatrixf(glm::value_ptr(prev_poses[i].T_WS));
-            drawAxes(0.5,false);
-         }
-         else
-         {
-            double max_age = 20.0;
-            double age = cur_pose.timestamp - prev_poses[i].timestamp;
-            age = std::max(age, 1.0);
-            if (num_poses > 0 && 
-               cur_pose.timestamp - prev_poses[i].timestamp < max_age)
-            {
-               float x = prev_poses[i].T_WS[3][0];
-               float z = -prev_poses[i].T_WS[3][1];
-               float y = prev_poses[i].T_WS[3][2];
-               glTranslatef(x,y,z);
+        glPushMatrix();
+        if (axes)
+        {
+          glRotated(-90.0,1.0,0.0,0.0);
+          glMultMatrixf(glm::value_ptr(poses[pose_idx].T_WS));
+          drawAxes(0.5,false);
+        }
+        else
+        {
+          double max_age = 20.0;
+          double age = poses[timestep].timestamp - poses[pose_idx].timestamp;
+          age = std::max(age, 1.0);
+          if (poses[timestep].timestamp - poses[pose_idx].timestamp < max_age)
+          {
+            float x = poses[pose_idx].T_WS[3][0];
+            float z = -poses[pose_idx].T_WS[3][1];
+            float y = poses[pose_idx].T_WS[3][2];
+            glTranslatef(x,y,z);
 
-               smoke->DrawSmoke(Ex+v_x,Ey+v_y,Ez+v_z, 
-                                v_x,v_y,v_z, 
-                                0.05*max_age/age);
-               num_poses--;
-            }
-         }
-         glPopMatrix();
+            smoke->DrawSmoke(Ex+v_x,Ey+v_y,Ez+v_z, 
+                             v_x,v_y,v_z, 
+                             0.05*max_age/age);
+          }
+          num_poses--;
+        }
+        glPopMatrix();
       }
-   }
-   //  Done
-   glFlush();
+      pose_idx--;
+    }
+  }
+  //  Done
+  glFlush();
 }
 
 /*
@@ -544,14 +575,16 @@ void SlamViz::Sky(double D)
    glPopMatrix();
 }
 
-bool SlamViz::readPose()
+bool SlamViz::readPoses()
 {
    std::string line;
-   if (std::getline(*pose_file,line))
+   unsigned int last_prev_idx = 0;
+   while (std::getline(*pose_file,line))
    {
       std::istringstream ss(line);
       std::string token;
       std::getline(ss, token, ' ');
+      Pose cur_pose;
       cur_pose.timestamp = std::stod(token);
       glm::vec3 translation;
       for (int i = 0; i < 3; i++)
@@ -572,6 +605,16 @@ bool SlamViz::readPose()
 
       cur_pose.T_WS = T_mat * rotation_mat;
 
+      cur_pose.trans[0] = translation[0];
+      cur_pose.trans[1] = translation[2];
+      cur_pose.trans[2] = -translation[1];
+
+      cur_pose.display_prev = shouldDisplayPrev(last_prev_idx, cur_pose);
+      
+      if (cur_pose.display_prev)
+      	last_prev_idx = poses.size();
+
+      /*
       if (pose_track)
       {
          v_x = translation[0];
@@ -582,62 +625,63 @@ bool SlamViz::readPose()
       {
          v_x = v_y = v_z = 0;
       }
-      return true;
+      */
+
+      poses.push_back(cur_pose);
    }
-   return false;
+   return true;
 }
 
 bool SlamViz::readLmrks()
 {
-   std::string line;
-   if (std::getline(*lmrk_file, line))
-   {
-      // insert new landmarks
-      unsigned int stamp = std::stod(line);
+  std::string line;
+  int lmrk_timestep = 0;
+  while (std::getline(*lmrk_file, line))
+  {
+    // insert new landmarks
+    std::map<unsigned long, Landmark> active_lmrks;
+
+    unsigned int stamp = std::stod(line);
+    std::getline(*lmrk_file, line);
+    while (line != "")
+    {
+      std::istringstream ss(line);
+      std::string token;
+      std::getline(ss, token, ' ');
+      unsigned long id = std::stol(token);
+      Landmark lmrk;
+      lmrk.timestamp = stamp;
+      std::getline(ss, token, ' ');
+      lmrk.quality = std::stod(token);
+      for (int i = 0; i < 3; i++)
+      {
+        std::getline(ss, token, ' ');
+        lmrk.point[i] = scale_factor*std::stof(token);
+      }
+      
+      active_lmrks.insert(std::pair<unsigned long, Landmark>(id, lmrk));
+
       std::getline(*lmrk_file, line);
-      while (line != "")
-      {
-         std::istringstream ss(line);
-         std::string token;
-         std::getline(ss, token, ' ');
-         unsigned long id = std::stol(token);
-         Landmark lmrk;
-         lmrk.timestamp = stamp;
-         std::getline(ss, token, ' ');
-         lmrk.quality = std::stod(token);
-         for (int i = 0; i < 3; i++)
-         {
-            std::getline(ss, token, ' ');
-            lmrk.point[i] = scale_factor*std::stof(token);
-         }
-         // update timestamp if landmark already exists
-         if (lmrks.find(id) != lmrks.end())
-         {
-            lmrks.at(id) = lmrk;
-         }
-         else
-         {
-            lmrks.insert(std::pair<unsigned long, Landmark>(id, lmrk));
-         }
-         std::getline(*lmrk_file, line);
-      }
-      // remove old landmarks
-      std::vector<unsigned long> marginalized_ids;
-      for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
-         it != lmrks.end(); it++)
-      {
-         if (it->second.timestamp < stamp)
-            marginalized_ids.push_back(it->first);
-      }
-      for (int i = 0; i < marginalized_ids.size(); i++)
-      {
-         Landmark marginalized = lmrks.at(marginalized_ids[i]);
-         lmrks.erase(marginalized_ids[i]);
-         inactive_lmrks.insert(std::pair<unsigned long, Landmark>(marginalized_ids[i],marginalized));
-      }
-      return true;
-   }
-   return false;
+    }
+    // iterate over active landmarks from last timestep
+    // add landmarks that aren't active in current timestep 
+    // to marginalized landmarks
+    if (lmrk_timestep > 0)
+    {
+	    for (std::map<unsigned long, Landmark>::iterator it = lmrks[lmrk_timestep-1].begin();
+	         it != lmrks[lmrk_timestep-1].end(); it++)
+	    {
+	      if (active_lmrks.find(it->first) == active_lmrks.end())
+	      {
+	        it->second.marginalized_timestep = lmrk_timestep;
+	        inactive_lmrks.insert(std::pair<unsigned long, Landmark>(it->first, it->second));
+	      }
+	    }
+  	}
+  	lmrks.push_back(active_lmrks);
+    lmrk_timestep++;
+  }
+  return true;
 }
 
 void SlamViz::drawAxes(double len, bool draw_labels)
@@ -665,35 +709,40 @@ void SlamViz::drawAxes(double len, bool draw_labels)
 
 // add pose to previous pose vector if it is above a 
 // threshold distance to the last pose in that vector
-void SlamViz::addToPrevPoses()
+bool SlamViz::shouldDisplayPrev(int last_index, Pose cur_pose)
 {
-   if (prev_poses.size() == 0)
+   if (poses.size() == 0)
    {
-      prev_poses.push_back(cur_pose);
+      return true;
    }
    else
    {
-      // get translation component from current pose and
-      // last pose in previous pose vector
-      glm::vec3 scale;
-      glm::quat rotation;
-      glm::vec3 cur_trans;
-      glm::vec3 prev_trans;
-      glm::vec3 skew;
-      glm::vec4 perspective;
-      glm::decompose(cur_pose.T_WS, scale, rotation, cur_trans, skew, perspective);
-      glm::decompose(prev_poses.back().T_WS, scale, rotation, prev_trans, skew, perspective);
+      // get translation component for current pose
+
+      Pose prev_pose = poses[last_index];
+
+	    // get translation component from current pose and
+	    // last pose in previous pose vector
+	    glm::vec3 scale;
+	    glm::quat rotation;
+	    glm::vec3 cur_trans;
+	    glm::vec3 prev_trans;
+	    glm::vec3 skew;
+	    glm::vec4 perspective;
+	    glm::decompose(cur_pose.T_WS, scale, rotation, cur_trans, skew, perspective);
+	    glm::decompose(prev_pose.T_WS, scale, rotation, prev_trans, skew, perspective);
 
 
-      // calculate the magnitude of the translation
-      // between the current pose and last pose
-      double dist = sqrt(glm::length2(cur_trans - prev_trans));
+	    // calculate the magnitude of the translation
+	    // between the current pose and last pose
+	    double dist = sqrt(glm::length2(cur_trans - prev_trans));
 
-      // if distance from last pose is greater than threshold, 
-      // add to previous pose vector
-      if (dist > 0.5)
-         prev_poses.push_back(cur_pose);
+	    // if distance from last pose is greater than threshold, 
+	    // add to previous pose vector
+	    if (dist > 0.5)
+	    	return true;
    }
+   return false;
 }
 
 
@@ -878,7 +927,7 @@ void SlamViz::Scene(bool light)
    //  Draw scene
 
    glRotated(-90.0,1.0,0.0,0.0);
-   glMultMatrixf(glm::value_ptr(cur_pose.T_WS));
+   glMultMatrixf(glm::value_ptr(poses[timestep].T_WS));
 
    plane->drawAirplane(0,0,0,
                        0,0,1,
@@ -903,8 +952,8 @@ void SlamViz::Scene(bool light)
 
 void SlamViz::dispLandmarks()
 {
-   for (std::map<unsigned long, Landmark>::iterator it = lmrks.begin();
-      it != lmrks.end(); it++)
+   for (std::map<unsigned long, Landmark>::iterator it = lmrks[timestep].begin();
+      it != lmrks[timestep].end(); it++)
    {
       if (it->second.quality >= lmrk_lwr_bound)
       {
@@ -922,14 +971,17 @@ void SlamViz::dispLandmarks()
       for (std::map<unsigned long, Landmark>::iterator it = inactive_lmrks.begin();
          it != inactive_lmrks.end(); it++)
       {
-         if (it->second.quality >= lmrk_lwr_bound)
+         if (it->second.marginalized_timestep < timestep
+         	&& it->second.quality >= lmrk_lwr_bound)
          {
             glPushMatrix();
             glRotated(-90.0,1.0,0.0,0.0);
             double x = it->second.point[0];
             double y = it->second.point[1];
             double z = it->second.point[2];
-            star->drawStar(x,y,z, x-v_x,y-v_y,z-v_z, 1.,0.,0., it->second.quality);;
+            star->drawStar(x,y,z, x-poses[timestep].trans[0],
+            	y-poses[timestep].trans[1],z-poses[timestep].trans[2], 
+            	1.,0.,0., it->second.quality);;
             glPopMatrix();
          }
       }

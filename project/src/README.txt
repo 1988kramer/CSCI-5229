@@ -47,6 +47,7 @@ Since the project review I've accomplished the following:
  - Replaced the simple sphere landmarks with more complex objects
    - Landmarks are now represented by a textured star model
    - The star model is read from a .obj file using a function in Star.cpp
+   - Each star should face the robot's current position in space
  - Added option to display the robot's previous poses as a smoke trail
    - The smoke trail is rendered as a series of transparent billboard 
      polygons with a smoke texture applied

@@ -49,7 +49,7 @@ Viewer::Viewer(QWidget* parent)
    land_lower->setValue(0.03);
 
    fps->setSingleStep(5);
-   fps->setRange(0,60);
+   fps->setRange(-60,60);
    fps->setValue(20);
 
 

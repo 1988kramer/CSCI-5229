@@ -40,7 +40,9 @@ QT_FORWARD_DECLARE_CLASS(QOpenGLTexture);
 typedef struct Pose
 {
 	glm::mat4 T_WS;
+	glm::vec3 trans;
 	double timestamp;
+	bool display_prev;
 } Pose;
 
 typedef struct Landmark
@@ -48,6 +50,7 @@ typedef struct Landmark
 	glm::vec3 point;
 	double timestamp;
 	double quality;
+	int marginalized_timestep;
 } Landmark;
 
 class SlamViz : public QGLWidget, protected QGLFunctions, protected QOpenGLFunctions
@@ -70,10 +73,6 @@ private:
 	double dim;
 	double asp;
 	double v_x,v_y,v_z; // current view center
-	double ylight;
-	double cur_time;
-	double last_time;
-	double last_stamp;
 	double scale_factor;
 	double Svec[4];
 	double Tvec[4];
@@ -92,12 +91,12 @@ private:
 	QTimer* timer;
 	std::ifstream* pose_file;
 	std::ifstream* lmrk_file;
-	Pose cur_pose;
-	std::vector<Pose> prev_poses;
-	std::map<unsigned long, Landmark> lmrks;
+	std::vector<Pose> poses;
+	std::vector<std::map<unsigned long, Landmark>> lmrks;
 	std::map<unsigned long, Landmark> inactive_lmrks;
+	unsigned long timestep;
 	int frame_ms; // time a single frame is displayed (inverse of fps)
-	bool paused; // is visualization paused?
+	bool paused, run_fwd; // is visualization paused?
 
 	QOpenGLShaderProgram *shadow_shader;
 	QOpenGLFunctions *glFuncs;
@@ -139,10 +138,10 @@ private:
 	void Sky(double D);
 	void displayGrid(double D);
 	void project(double fov, double asp, double dim);
-	bool readPose();
+	bool readPoses();
 	bool readLmrks();
 	void drawAxes(double len, bool draw_labels);
-	void addToPrevPoses();
+	bool shouldDisplayPrev(int last_index, Pose cur_pose);
 
 	void initShaders();
 	void initMap();
