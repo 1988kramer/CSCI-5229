@@ -639,9 +639,9 @@ void SlamViz::initShaders()
 {
    shadow_shader = new QOpenGLShaderProgram(this);
    // compile shader for shadowing
-   if (!shadow_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "shadow.vert"));
+   if (!shadow_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "shadow.vert"))
       close();
-   if (!shadow_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "shadow.frag"));
+   if (!shadow_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "shadow.frag"))
       close();
    if (!shadow_shader->link())
       close();
