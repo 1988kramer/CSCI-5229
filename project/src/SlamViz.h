@@ -79,9 +79,7 @@ private:
 	double Rvec[4];
 	double Qvec[4];
 	float Lpos[4];
-	int smooth;
-	int ambient, diffuse, specular, distance, zh,
-			local, emission, shiny, inc, shadowdim;
+	int shadowdim;
 	unsigned int framebuf;
 	airplane* plane;
 	Star* star;
@@ -89,8 +87,6 @@ private:
 	QOpenGLTexture *texture[3];
 	QOpenGLTexture *sky;
 	QTimer* timer;
-	std::ifstream* pose_file;
-	std::ifstream* lmrk_file;
 	std::vector<Pose> poses;
 	std::vector<std::map<unsigned long, Landmark>> lmrks;
 	std::map<unsigned long, Landmark> inactive_lmrks;
